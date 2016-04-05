@@ -1,0 +1,35 @@
+{
+    "name": "syonix/log-viewer-lib",
+    "description": "A library to gather log files from different sources and use them in a unified format.",
+    "keywords": ["monolog", "viewer", "log","logging"],
+    "type": "library",
+    "license": "GPL-2.0",
+    "authors": [
+        {
+            "name": "Michael Burri",
+            "email": "michael.burri@syonix.ch"
+        }
+    ],
+    "support": {
+      "email": "support@syonix.ch"
+    },
+    "require": {
+        "php": ">=5.4",
+        "silex/silex": "~1.2",
+        "twig/twig": ">=1.8,<2.0-dev",
+        "symfony/twig-bridge": "2.7.*",
+        "symfony/security": "~2.3",
+        "ddtraceweb/monolog-parser": "1.*",
+        "ircmaxell/password-compat": "1.*",
+        "rmccue/requests": "1.6.*",
+        "league/flysystem": "~1.0",
+        "league/flysystem-cached-adapter": "~1.0",
+        "symfony/yaml": "~2.4",
+        "doctrine/collections": "~1.3",
+        "phpunit/phpunit": "~4.8",
+        "jbroadway/urlify": "^1.0"
+    },
+    "autoload": {
+        "psr-4": {"Syonix\\LogViewer\\": "lib/"}
+    }
+}

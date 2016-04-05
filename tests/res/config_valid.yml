@@ -1,0 +1,23 @@
+debug: false
+timezone: "Europe/Zurich"
+date_format: dd.MM.yyyy HH:mm:ss
+display_logger: false
+limit: 100
+cache_expire: 300
+reverse_line_order: true
+logs:
+    Demo:
+        Demo-Log-File:
+            type: local
+            path: /path/to/your/monolog-viewer/installation/test/SyonixLogViewer/res/test.log
+        Custom Pattern:
+            type: local
+            path: /path/to/your/monolog-viewer/installation/test/SyonixLogViewer/res/test_no_context.log
+            pattern: /\[(?P<date>.*)\] (?P<logger>\w+).(?P<level>\w+): (?P<message>[^\[\{]+)/
+    Acme:
+        Acme App:
+            type: ftp
+            host: acme.com
+            username: logs
+            password: $upersecur3
+            path: app/logs/prod.log
