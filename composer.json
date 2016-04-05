@@ -14,7 +14,7 @@
       "email": "support@syonix.ch"
     },
     "require": {
-        "php": ">=5.4",
+        "php": ">=5.5.9",
         "silex/silex": "~1.2",
         "twig/twig": ">=1.8,<2.0-dev",
         "symfony/twig-bridge": "2.7.*",
