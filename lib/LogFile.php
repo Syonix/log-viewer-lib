@@ -4,7 +4,6 @@ namespace Syonix\LogViewer;
 use Doctrine\Common\Collections\ArrayCollection;
 use Monolog\Logger;
 use Psr\Log\InvalidArgumentException;
-use Syonix\Util\StringUtil;
 
 class LogFile {
     protected $name;
@@ -18,8 +17,8 @@ class LogFile {
         setlocale(LC_ALL, 'en_US.UTF8');
 
         $this->name = $name;
-        $this->slug = StringUtil::toAscii($name);
-        $this->clientSlug = StringUtil::toAscii($clientSlug);
+        $this->slug = \URLify::filter($name);
+        $this->clientSlug = \URLify::filter($clientSlug);
         $this->args = $args;
         $this->lines = new ArrayCollection();
         $this->loggers = new ArrayCollection();
