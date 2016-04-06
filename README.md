@@ -3,7 +3,7 @@
 
 **Watch out: This library is still very WIP**
 
-This is the core of the [Syonix Monolog Viewer](https://github.com/Syonix/monolog-viewer).
+This is the core of [Syonix Monolog Viewer](https://github.com/Syonix/monolog-viewer).
 
 Use it, if you want to include the Log Viewer functionality in your app. 
 
