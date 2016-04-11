@@ -10,7 +10,11 @@ class Config {
 
     public function __construct($config)
     {
-        $this->config = $config;
+        if(is_array($config)) {
+            $this->config = $config;
+        } else {
+            $this->config = $this->parse($config);
+        }
     }
 
     public static function lint($config, $verifyLogFiles = false)
@@ -253,14 +257,41 @@ class Config {
         return self::lint($this->config);
     }
 
-    public function get($property)
+    /**
+     * @param string|null $property Dot-separated property (e.g. "date_format" or "logs.collection.log_file")
+     * @return mixed
+     */
+    public function get($property = null)
     {
+        if($property === null || $property == '') {
+            return $this->config;
+        }
 
+        $tree = explode('.', $property);
+        $node = $this->config;
+        foreach($tree as $workingNode) {
+            if(!array_key_exists($workingNode, $node)) {
+                $actualNode = null;
+                foreach($node as $testNodeKey => $testNode) {
+                    if(\URLify::filter($testNodeKey) == $workingNode) {
+                        $actualNode = $testNodeKey;
+                    }
+                }
+                if($actualNode === null) {
+                    throw new \InvalidArgumentException('The property "'.$property
+                        .'" was not found. Failed while getting node "'.$workingNode.'"');
+                }
+                $workingNode = $actualNode;
+            }
+            $node = $node[$workingNode];
+        }
+
+        return $node;
     }
 
     protected function getValidConfigTree()
     {
-        return $this->validConfigTree;
+        return $this->configTree;
     }
 
     protected function getMandatoryConfigTree()

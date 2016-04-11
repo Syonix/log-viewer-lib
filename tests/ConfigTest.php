@@ -16,4 +16,25 @@ class ConfigTest extends PHPUnit_Framework_TestCase
             $this->assertEquals('ok', $check['status']);
         }
     }
+
+    public function testGetRoot() {
+        $config = new \Syonix\LogViewer\Config(file_get_contents(__DIR__.'/res/config_valid.yml'));
+        $configTest = $config->get();
+        $this->assertArrayHasKey('debug', $configTest);
+    }
+
+    public function testGetTimezone() {
+        $config = new \Syonix\LogViewer\Config(file_get_contents(__DIR__.'/res/config_valid.yml'));
+        $this->assertEquals('Europe/Zurich', $config->get('timezone'));
+    }
+
+    public function testGetNestedValue() {
+        $config = new \Syonix\LogViewer\Config(file_get_contents(__DIR__.'/res/config_valid.yml'));
+        $this->assertEquals('local', $config->get('logs.Demo.Demo-Log-File.type'));
+    }
+
+    public function testGetNestedValueSlug() {
+        $config = new \Syonix\LogViewer\Config(file_get_contents(__DIR__.'/res/config_valid.yml'));
+        $this->assertEquals('local', $config->get('logs.demo.custom-pattern.type'));
+    }
 }
