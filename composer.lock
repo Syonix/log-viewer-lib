@@ -4,8 +4,8 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "hash": "5c0c94d5443a7c5d4a9bd140ce878232",
-    "content-hash": "8ec2c3044212bc47ba39641d44d37b33",
+    "hash": "b1146f934f9b880f047fa19ac0d79a74",
+    "content-hash": "a184facb6fb78403496ea83e6e3cef92",
     "packages": [
         {
             "name": "ddtraceweb/monolog-parser",
@@ -45,58 +45,6 @@
             ],
             "description": "A parser for monolog log entries",
             "time": "2015-06-25 08:36:59"
-        },
-        {
-            "name": "deralex/yaml-config-service-provider",
-            "version": "1.0.0",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/deralex/YamlConfigServiceProvider.git",
-                "reference": "08ce96bf19f0014feaeb9606ef29c164bd4a43de"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/deralex/YamlConfigServiceProvider/zipball/08ce96bf19f0014feaeb9606ef29c164bd4a43de",
-                "reference": "08ce96bf19f0014feaeb9606ef29c164bd4a43de",
-                "shasum": ""
-            },
-            "require": {
-                "silex/silex": ">=1.0",
-                "symfony/yaml": "~2.4"
-            },
-            "require-dev": {
-                "phpspec/phpspec": "2.0.*@dev",
-                "symfony/yaml": "~2.4"
-            },
-            "suggest": {
-                "symfony/yaml": "~2.4"
-            },
-            "type": "library",
-            "extra": {
-                "branch-alias": {
-                    "dev-master": "1.0-dev"
-                }
-            },
-            "autoload": {
-                "psr-0": {
-                    "DerAlex\\Silex": "src"
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "MIT"
-            ],
-            "authors": [
-                {
-                    "name": "Alexander Kluth",
-                    "email": "contact@alexanderkluth.com"
-                }
-            ],
-            "description": "Silex ServiceProvider for using YAML configuration files",
-            "keywords": [
-                "silex"
-            ],
-            "time": "2014-01-29 15:54:57"
         },
         {
             "name": "doctrine/collections",
@@ -1678,6 +1626,66 @@
             "time": "2016-01-06 14:59:35"
         },
         {
+            "name": "symfony/console",
+            "version": "v3.0.4",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/symfony/console.git",
+                "reference": "6b1175135bc2a74c08a28d89761272de8beed8cd"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/symfony/console/zipball/6b1175135bc2a74c08a28d89761272de8beed8cd",
+                "reference": "6b1175135bc2a74c08a28d89761272de8beed8cd",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=5.5.9",
+                "symfony/polyfill-mbstring": "~1.0"
+            },
+            "require-dev": {
+                "psr/log": "~1.0",
+                "symfony/event-dispatcher": "~2.8|~3.0",
+                "symfony/process": "~2.8|~3.0"
+            },
+            "suggest": {
+                "psr/log": "For using the console logger",
+                "symfony/event-dispatcher": "",
+                "symfony/process": ""
+            },
+            "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-master": "3.0-dev"
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Symfony\\Component\\Console\\": ""
+                },
+                "exclude-from-classmap": [
+                    "/Tests/"
+                ]
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Fabien Potencier",
+                    "email": "fabien@symfony.com"
+                },
+                {
+                    "name": "Symfony Community",
+                    "homepage": "https://symfony.com/contributors"
+                }
+            ],
+            "description": "Symfony Console Component",
+            "homepage": "https://symfony.com",
+            "time": "2016-03-16 17:00:50"
+        },
+        {
             "name": "symfony/debug",
             "version": "v3.0.4",
             "source": {
@@ -2686,7 +2694,7 @@
     "prefer-stable": false,
     "prefer-lowest": false,
     "platform": {
-        "php": ">=5.4"
+        "php": ">=5.5.9"
     },
     "platform-dev": []
 }

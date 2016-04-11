@@ -25,7 +25,12 @@ class Config {
         try {
             $config = self::parse($config);
             $checks['valid_yaml']['status'] = 'ok';
-
+        } catch (\Exception $e) {
+            $valid = false;
+            $checks['valid_yaml']['status'] = 'fail';
+            $checks['valid_yaml']['error'] = $e->getMessage();
+        }
+        try {
             // Valid structure
             $checks['valid_structure'] = self::lintValidProperties($config);
             if($checks['valid_structure']['status'] == 'fail') throw new \Exception();
@@ -51,8 +56,6 @@ class Config {
             }
         } catch (\Exception $e) {
             $valid = false;
-            $checks['valid_yaml']['status'] = 'fail';
-            $checks['valid_yaml']['error'] = $e->getMessage();
         }
 
         return array(
@@ -120,10 +123,10 @@ class Config {
                 if($property != 'logs') {
                     switch(self::getValidSettings($property)['type']) {
                         case 'bool':
-                            if(!is_bool($value)) throw new \Exception('"'.$property.'"" must be a boolean value.');
+                            if(!is_bool($value)) throw new \Exception('"'.$property.'" must be a boolean value.');
                             break;
                         case 'int':
-                            if(!is_int($value)) throw new \Exception('"'.$property.'"" must be an integer value.');
+                            if(!is_int($value)) throw new \Exception('"'.$property.'" must be an integer value.');
                             break;
                     }
                 }
