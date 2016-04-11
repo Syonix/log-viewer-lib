@@ -68,13 +68,13 @@ class LintCommand extends Command
         $line[] = $indentation."> ".$message;
         switch($check['status']) {
             case 'ok':
-                $line[] .= '[ <fg=green>ok</> ]';
+                $line[] .= '  [ <fg=green>ok</> ]';
                 break;
             case 'warn':
-                $line[] .= '[<fg=yellow>warn</>]';
+                $line[] .= '  [<fg=yellow>warn</>]';
                 break;
             default:
-                $line[] .= '[<fg=red>fail</>]';
+                $line[] .= '  [<fg=red>fail</>]';
                 break;
         }
         $checkLines[] = $line;
