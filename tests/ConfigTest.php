@@ -37,4 +37,13 @@ class ConfigTest extends PHPUnit_Framework_TestCase
         $config = new \Syonix\LogViewer\Config(file_get_contents(__DIR__.'/res/config_valid.yml'));
         $this->assertEquals('local', $config->get('logs.demo.custom-pattern.type'));
     }
+
+    /**
+     * @expectedException InvalidArgumentException
+     * @expectedExceptionMessage The property "logs.Node.Not.Existing" was not found. Failed while getting node "Node"
+     */
+    public function testGetNestedValueException() {
+        $config = new \Syonix\LogViewer\Config(file_get_contents(__DIR__.'/res/config_valid.yml'));
+        $config->get('logs.Node.Not.Existing');
+    }
 }
