@@ -7,7 +7,7 @@ use League\Flysystem\Adapter\Local;
 use League\Flysystem\AdapterInterface;
 use League\Flysystem\Filesystem;
 
-class Cache
+class LogFileCache
 {
     private $cache;
     private $expire;
