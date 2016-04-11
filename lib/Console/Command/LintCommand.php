@@ -60,6 +60,7 @@ class LintCommand extends Command
             $checkLines = $this->prepareCheckLine($checkLines, $check);
         }
 
+        $output->writeln('Checks:');
         $table = new Table($output);
         $table->setStyle('compact');
         $table->setRows($checkLines);
@@ -75,10 +76,10 @@ class LintCommand extends Command
 
     private function prepareCheckLine($checkLines, $check, $level = 0)
     {
-        $indentation = " ".str_repeat('   ', $level);
+        $indentation = str_repeat('   ', $level);
 
         $message = preg_replace('/"(.+)"/', '<fg=blue>${1}</>', $check['message']);
-        $line[] = $indentation."> ".$message;
+        $line[] = $indentation."➜ ".$message;
         switch($check['status']) {
             case 'ok':
                 $line[] .= '  [ <fg=green>ok</> ]';
