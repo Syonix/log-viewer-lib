@@ -13,7 +13,7 @@ class Config {
         $this->config = $config;
     }
 
-    public static function lint($config)
+    public static function lint($config, $verifyLogFiles = false)
     {
         $valid = true;
         $checks = [];

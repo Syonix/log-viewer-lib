@@ -1,0 +1,12 @@
+#!/usr/bin/env php
+<?php
+
+set_time_limit(0);
+require __DIR__.'/../vendor/autoload.php';
+
+use Symfony\Component\Console\Application;
+use Syonix\LogViewer\Console\Command\LintCommand;
+
+$app = new Application('Syonix Log Viewer CLI', '1.0.0');
+$app->add(new LintCommand(__DIR__.'/config/config.yml'));
+$app->run();

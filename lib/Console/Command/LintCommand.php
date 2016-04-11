@@ -7,6 +7,7 @@ use Symfony\Component\Console\Helper\Table;
 use Symfony\Component\Console\Helper\TableCell;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Syonix\LogViewer\Config;
 
@@ -26,6 +27,12 @@ class LintCommand extends Command
                 ($this->configDefaultPath === null ? InputArgument::REQUIRED : InputArgument::OPTIONAL),
                 'The path to your config file'
             )
+            ->addOption(
+                'check-files',
+                'c',
+                InputOption::VALUE_NONE,
+                'Also check if the log files are accessible'
+            )
         ;
     }
 
@@ -33,14 +40,20 @@ class LintCommand extends Command
     {
         $path = ($input->getArgument('config_file') ? $input->getArgument('config_file') : $this->configDefaultPath);
         $output->writeln('Linting <info>'.basename($path).'</info>...');
-        $output->writeln('');
         if(!is_file($path)) {
             throw new \InvalidArgumentException('"'.$path.'" is not a file.');
         } else if(!is_readable($path)) {
             throw new \InvalidArgumentException('"'.$path.'" can not be read.');
         }
 
-        $lint = Config::lint(file_get_contents($path));
+        $verifyLogFiles = $input->getOption('check-files');
+
+        if($verifyLogFiles) {
+            $output->writeln('<comment>Also checking if the log files can be accessed.</comment>');
+        }
+        $output->writeln('');
+
+        $lint = Config::lint(file_get_contents($path), $verifyLogFiles);
 
         $checkLines = array();
         foreach($lint['checks'] as $check) {
