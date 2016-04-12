@@ -68,7 +68,7 @@ class Config {
         );
     }
 
-    protected function lintValidProperties($config) {
+    protected static function lintValidProperties($config) {
         $return = array(
             'message' => 'Structure is valid',
         );
@@ -118,7 +118,7 @@ class Config {
         return $return;
     }
 
-    protected function lintValidSettingsValues($config) {
+    protected static function lintValidSettingsValues($config) {
         $return = array(
             'message' => 'Settings values are valid'
         );
@@ -144,7 +144,7 @@ class Config {
         return $return;
     }
 
-    protected function lintLogCollection($name, $logCollection) {
+    protected static function lintLogCollection($name, $logCollection) {
         $return = array(
             'message' => 'Checking "'.$name.'"'
         );
@@ -167,7 +167,7 @@ class Config {
         return $return;
     }
 
-    protected function lintLogFile($name, $logFile) {
+    protected static function lintLogFile($name, $logFile) {
         $return = array(
             'message' => 'Checking "'.$name.'"'
         );
