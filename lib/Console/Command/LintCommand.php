@@ -93,13 +93,13 @@ class LintCommand extends Command
         }
         $checkLines[] = $line;
 
-        if(isset($check['error'])) {
+        if(isset($check['error']) && $check['error'] != "") {
             $prefix = $check['status'] == 'warn' ? '<fg=yellow>Warning:</>' : '<fg=red>Error:</>';
             $checkLines[][] = new TableCell($indentation.'  '.$prefix.' '.$check['error'], array('colspan' => 2));
         }
 
-        if(!empty($check['sub_checks'])) {
-            foreach($check['sub_checks'] as $subCheck) {
+        if(!empty($check['checks'])) {
+            foreach($check['checks'] as $subCheck) {
                 $checkLines = $this->prepareCheckLine($checkLines, $subCheck, $level + 1);
             }
         }

@@ -15,5 +15,7 @@ If you want a pretty front end along with it, check out [Syonix Monolog Viewer](
 ### Using composer
 In your project root, call `composer require syonix/log-viewer-lib`.
 
-## Command line helpers
+## Usage
+
+## Command line
 For debugging, in the `log-viewer-lib` root, call `bin/console` (or `php bin/console` if that does not work) and you'll get an overview of helper commands

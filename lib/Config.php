@@ -50,13 +50,14 @@ class Config {
             );
             try {
                 foreach($config['logs'] as $logCollectionName => $logCollection) {
-                    $checks['log_collections']['sub_checks'][$logCollectionName] = self::lintLogCollection($logCollectionName, $logCollection);
-                    if($checks['log_collections']['sub_checks'][$logCollectionName]['status'] == 'fail') throw new \Exception();
+                    $checks['log_collections']['checks'][$logCollectionName] = self::lintLogCollection($logCollectionName, $logCollection, $verifyLogFiles);
+                    if($checks['log_collections']['checks'][$logCollectionName]['status'] == 'fail') throw new \Exception();
                 }
                 $checks['log_collections']['status'] = 'ok';
             } catch(\Exception $e) {
                 $checks['log_collections']['status'] = 'fail';
                 $checks['log_collections']['error'] = $e->getMessage();
+                $valid = false;
             }
         } catch (\Exception $e) {
             $valid = false;
@@ -144,7 +145,7 @@ class Config {
         return $return;
     }
 
-    protected static function lintLogCollection($name, $logCollection) {
+    protected static function lintLogCollection($name, $logCollection, $verifyLogFiles) {
         $return = array(
             'message' => 'Checking "'.$name.'"'
         );
@@ -154,8 +155,8 @@ class Config {
                 $return['error'] = '"'.$name.'" has no log files.';
             } else {
                 foreach($logCollection as $logFileName => $logFile) {
-                    $return['sub_checks'][$logFileName] = self::lintLogFile($logFileName, $logFile);
-                    if($return['sub_checks'][$logFileName]['status'] == 'fail') throw new \Exception();
+                    $return['checks'][$logFileName] = self::lintLogFile($logFileName, $logFile, $verifyLogFiles);
+                    if($return['checks'][$logFileName]['status'] == 'fail') throw new \Exception();
                 }
                 $return['status'] = 'ok';
             }
@@ -167,7 +168,7 @@ class Config {
         return $return;
     }
 
-    protected static function lintLogFile($name, $logFile) {
+    protected static function lintLogFile($name, $logFile, $verifyLogFiles) {
         $return = array(
             'message' => 'Checking "'.$name.'"'
         );
@@ -175,12 +176,30 @@ class Config {
             if(!array_key_exists($logFile['type'], self::getValidLogTypes())) {
                 throw new \Exception('"'.$logFile['type'].'" is not a supported type.');
             }
+            if($verifyLogFiles) {
+                $return['checks'][$name] = self::lintCheckFileAccessible(new LogFile($name, null, $logFile));
+                if($return['checks'][$name]['status'] == 'fail') throw new \Exception();
+            }
             $return['status'] = 'ok';
         } catch(\Exception $e) {
             $return['status'] = 'fail';
             $return['error'] = $e->getMessage();
         }
 
+        return $return;
+    }
+
+    protected static function lintCheckFileAccessible(LogFile $logFile) {
+        $return = array('message' => 'Checking if "'.$logFile->getName().'" is accessible');
+        try {
+            if(!LogFileCache::isSourceFileAccessible($logFile)) {
+                throw new \Exception("File does not exist on target file system.");
+            }
+            $return['status'] = 'ok';
+        } catch(\Exception $e) {
+            $return['status'] = 'fail';
+            $return['error'] = $e->getMessage();
+        }
         return $return;
     }
 

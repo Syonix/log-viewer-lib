@@ -62,13 +62,10 @@ class LogFileCache
         }
     }
 
-    private function loadSource(LogFile $logFile)
-    {
-        $args = $logFile->getArgs();
-
+    private static function getFileSystem($args) {
         switch($args['type']) {
             case 'ftp':
-                $filesystem = new Filesystem(new Ftp(array(
+                $args['filesystem'] = new Filesystem(new Ftp(array(
                     'host' => $args['host'],
                     'username' => $args['username'],
                     'password' => $args['password'],
@@ -77,14 +74,20 @@ class LogFileCache
                 )));
                 break;
             case 'local':
-                $filesystem = new Filesystem(new Local(dirname($args['path'])));
+                $args['filesystem'] = new Filesystem(new Local(dirname($args['path'])));
                 $args['path'] = basename($args['path']);
                 break;
             default:
                 throw new \InvalidArgumentException("Invalid log file type: \"" . $args['type']."\"");
         }
+        return $args;
+    }
 
-        $file = $filesystem->read($args['path']);
+    private function loadSource(LogFile $logFile)
+    {
+        $args = self::getFilesystem($logFile->getArgs());
+
+        $file = $args['filesystem']->read($args['path']);
         $lines = explode("\n", $file);
         $parser = new LineLogParser();
         if(isset($args['pattern'])) {
@@ -108,5 +111,11 @@ class LogFileCache
         $this->writeCache($logFile);
 
         return $logFile;
+    }
+
+    public static function isSourceFileAccessible(LogFile $logFile)
+    {
+        $args = self::getFilesystem($logFile->getArgs());
+        return $args['filesystem']->has($args['path']);
     }
 }
