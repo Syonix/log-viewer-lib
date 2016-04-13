@@ -1,4 +1,5 @@
 <?php
+
 namespace Syonix\LogViewer;
 
 use Doctrine\Common\Collections\ArrayCollection;
@@ -15,11 +16,11 @@ class LogManager
 
         $this->logCollections = new ArrayCollection();
 
-        if(count($logs) == 0) {
+        if (count($logs) == 0) {
             throw new NoLogsConfiguredException();
         }
         foreach ($logs as $logCollectionName => $logCollectionLogs) {
-            if(count($logCollectionLogs) > 0) {
+            if (count($logCollectionLogs) > 0) {
                 $logCollection = new LogCollection($logCollectionName);
                 foreach ($logCollectionLogs as $logName => $args) {
                     $logCollection->addLog(new LogFile($logName, $logCollection->getSlug(), $args));
@@ -41,16 +42,17 @@ class LogManager
 
     /**
      * @param $slug
+     *
      * @return LogCollection|null
      */
     public function getLogCollection($slug)
     {
-        foreach($this->logCollections as $logCollection) {
-            if($logCollection->getSlug() == $slug) return $logCollection;
+        foreach ($this->logCollections as $logCollection) {
+            if ($logCollection->getSlug() == $slug) {
+                return $logCollection;
+            }
         }
-        return null;
     }
-
 
     /**
      * @return LogCollection|null

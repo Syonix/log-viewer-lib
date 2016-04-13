@@ -1,4 +1,5 @@
 <?php
+
 namespace Syonix\LogViewer;
 
 use Dubture\Monolog\Parser\LineLogParser;
@@ -22,9 +23,9 @@ class LogFileCache
 
     public function get(LogFile $logFile)
     {
-        if($this->cache->has($this->getFilename($logFile))) {
+        if ($this->cache->has($this->getFilename($logFile))) {
             $timestamp = $this->cache->getTimestamp($this->getFilename($logFile));
-            if($timestamp > (time() - $this->expire)) {
+            if ($timestamp > (time() - $this->expire)) {
                 return $this->readCache($logFile);
             } else {
                 $this->deleteCache($logFile);
@@ -58,7 +59,9 @@ class LogFileCache
     {
         $cache = $this->cache->get('/')->getContents();
         foreach ($cache as $file) {
-            if($file['type'] == 'file' && substr($file['basename'], 0, 1) !== '.') $this->cache->delete($file['path']);
+            if ($file['type'] == 'file' && substr($file['basename'], 0, 1) !== '.') {
+                $this->cache->delete($file['path']);
+            }
         }
     }
 
@@ -66,28 +69,28 @@ class LogFileCache
     {
         $args = $logFile->getArgs();
 
-        switch($args['type']) {
+        switch ($args['type']) {
             case 'ftp':
-                $filesystem = new Filesystem(new Ftp(array(
-                    'host' => $args['host'],
+                $filesystem = new Filesystem(new Ftp([
+                    'host'     => $args['host'],
                     'username' => $args['username'],
                     'password' => $args['password'],
-                    'passive' => true,
-                    'ssl' => false,
-                )));
+                    'passive'  => true,
+                    'ssl'      => false,
+                ]));
                 break;
             case 'local':
                 $filesystem = new Filesystem(new Local(dirname($args['path'])));
                 $args['path'] = basename($args['path']);
                 break;
             default:
-                throw new \InvalidArgumentException("Invalid log file type: \"" . $args['type']."\"");
+                throw new \InvalidArgumentException('Invalid log file type: "'.$args['type'].'"');
         }
 
         $file = $filesystem->read($args['path']);
         $lines = explode("\n", $file);
         $parser = new LineLogParser();
-        if(isset($args['pattern'])) {
+        if (isset($args['pattern'])) {
             $hasCustomPattern = true;
             $parser->registerPattern('custom', $args['pattern']);
         } else {
@@ -97,14 +100,16 @@ class LogFileCache
         foreach ($lines as $line) {
             $entry = ($hasCustomPattern ? $parser->parse($line, 0, 'custom') : $parser->parse($line, 0));
             if (count($entry) > 0) {
-                if(!$logFile->hasLogger($entry['logger'])) {
+                if (!$logFile->hasLogger($entry['logger'])) {
                     $logFile->addLogger($entry['logger']);
                 }
                 $logFile->addLine($entry);
             }
         }
 
-        if($this->reverse) $logFile->reverseLines();
+        if ($this->reverse) {
+            $logFile->reverseLines();
+        }
         $this->writeCache($logFile);
 
         return $logFile;
