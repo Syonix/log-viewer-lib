@@ -6,6 +6,7 @@ use League\Flysystem\Adapter\Ftp;
 use League\Flysystem\Adapter\Local;
 use League\Flysystem\AdapterInterface;
 use League\Flysystem\Filesystem;
+use League\Flysystem\Sftp\SftpAdapter;
 
 class LogFileCache
 {
@@ -62,16 +63,49 @@ class LogFileCache
         }
     }
 
-    private static function getFileSystem($args) {
+    private static function getFilesystem($args) {
         switch($args['type']) {
             case 'ftp':
+                $default = [
+                    'port' => 21,
+                    'root' => '/',
+                    'passive' => true,
+                    'ssl' => false,
+                    'timeout' => 30
+                ];
                 $args['filesystem'] = new Filesystem(new Ftp(array(
                     'host' => $args['host'],
                     'username' => $args['username'],
                     'password' => $args['password'],
+                    'port' => isset($args['port']) ? $args['port'] : $default['port'],
+                    'root' => isset($args['root']) ? $args['root'] : $default['root'],
+                    'passive' => isset($args['passive']) ? $args['passive'] : $default['passive'],
+                    'ssl' => isset($args['ssl']) ? $args['ssl'] : $default['ssl'],
+                    'timeout' => isset($args['timeout']) ? $args['timeout'] : $default['timeout'],
+                )));
+                break;
+            case 'sftp':
+                $default = [
+                    'port' => 21,
+                    'root' => '/',
                     'passive' => true,
                     'ssl' => false,
-                )));
+                    'timeout' => 30
+                ];
+                $config = [
+                    'host' => $args['host'],
+                    'username' => $args['username'],
+                    'password' => $args['password'],
+                    'port' => isset($args['port']) ? $args['port'] : $default['port'],
+                    'root' => isset($args['root']) ? $args['root'] : $default['root'],
+                    'passive' => isset($args['passive']) ? $args['passive'] : $default['passive'],
+                    'ssl' => isset($args['ssl']) ? $args['ssl'] : $default['ssl'],
+                    'timeout' => isset($args['timeout']) ? $args['timeout'] : $default['timeout'],
+                ];
+                if(isset($args['privateKey'])) {
+                    $config['privateKey'] = $args['privateKey'];
+                }
+                $args['filesystem'] = new Filesystem(new SftpAdapter($config));
                 break;
             case 'local':
                 $args['filesystem'] = new Filesystem(new Local(dirname($args['path'])));
