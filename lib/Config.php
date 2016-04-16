@@ -293,6 +293,25 @@ class Config
                 'pattern' => [
                     'type'      => 'string',
                 ],
+            ], 'sftp' => [
+                'host' => [
+                    'type'      => 'string',
+                ],
+                'username' => [
+                    'type'      => 'string',
+                ],
+                'password' => [
+                    'type'      => 'string',
+                ],
+                'path' => [
+                    'type'      => 'string',
+                ],
+                'pattern' => [
+                    'type'      => 'string',
+                ],
+                'private_key' => [
+                    'type'      => 'string',
+                ],
             ],
         ];
     }

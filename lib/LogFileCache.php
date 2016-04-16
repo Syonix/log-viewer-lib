@@ -71,7 +71,6 @@ class LogFileCache
             case 'ftp':
                 $default = [
                     'port' => 21,
-                    'root' => '/',
                     'passive' => true,
                     'ssl' => false,
                     'timeout' => 30
@@ -81,7 +80,6 @@ class LogFileCache
                     'username' => $args['username'],
                     'password' => $args['password'],
                     'port' => isset($args['port']) ? $args['port'] : $default['port'],
-                    'root' => isset($args['root']) ? $args['root'] : $default['root'],
                     'passive' => isset($args['passive']) ? $args['passive'] : $default['passive'],
                     'ssl' => isset($args['ssl']) ? $args['ssl'] : $default['ssl'],
                     'timeout' => isset($args['timeout']) ? $args['timeout'] : $default['timeout'],
@@ -90,7 +88,6 @@ class LogFileCache
             case 'sftp':
                 $default = [
                     'port' => 21,
-                    'root' => '/',
                     'passive' => true,
                     'ssl' => false,
                     'timeout' => 30
@@ -100,13 +97,12 @@ class LogFileCache
                     'username' => $args['username'],
                     'password' => $args['password'],
                     'port' => isset($args['port']) ? $args['port'] : $default['port'],
-                    'root' => isset($args['root']) ? $args['root'] : $default['root'],
                     'passive' => isset($args['passive']) ? $args['passive'] : $default['passive'],
                     'ssl' => isset($args['ssl']) ? $args['ssl'] : $default['ssl'],
                     'timeout' => isset($args['timeout']) ? $args['timeout'] : $default['timeout'],
                 ];
-                if(isset($args['privateKey'])) {
-                    $config['privateKey'] = $args['privateKey'];
+                if(isset($args['private_key'])) {
+                    $config['privateKey'] = $args['private_key'];
                 }
                 $args['filesystem'] = new Filesystem(new SftpAdapter($config));
                 break;
