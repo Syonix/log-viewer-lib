@@ -60,9 +60,9 @@ class Config
                         throw new \Exception();
                     }
                 }
-                foreach($config['logs'] as $logCollectionName => $logCollection) {
+                foreach ($config['logs'] as $logCollectionName => $logCollection) {
                     $checks['log_collections']['checks'][$logCollectionName] = self::lintLogCollection($logCollectionName, $logCollection, $verifyLogFiles);
-                    if($checks['log_collections']['checks'][$logCollectionName]['status'] == 'fail') {
+                    if ($checks['log_collections']['checks'][$logCollectionName]['status'] == 'fail') {
                         throw new \Exception();
                     }
                 }
@@ -198,12 +198,14 @@ class Config
             if (!array_key_exists($logFile['type'], self::getValidLogTypes())) {
                 throw new \Exception('"'.$logFile['type'].'" is not a supported type.');
             }
-            if($verifyLogFiles) {
+            if ($verifyLogFiles) {
                 $return['checks'][$name] = self::lintCheckFileAccessible(new LogFile($name, null, $logFile));
-                if($return['checks'][$name]['status'] == 'fail') throw new \Exception();
+                if ($return['checks'][$name]['status'] == 'fail') {
+                    throw new \Exception();
+                }
             }
             $return['status'] = 'ok';
-        } catch(\Exception $e) {
+        } catch (\Exception $e) {
             $return['status'] = 'fail';
             $return['error'] = $e->getMessage();
         }
@@ -211,18 +213,19 @@ class Config
         return $return;
     }
 
-    protected static function lintCheckFileAccessible(LogFile $logFile) {
-        $return = array('message' => 'Checking if "'.$logFile->getName().'" is accessible');
+    protected static function lintCheckFileAccessible(LogFile $logFile)
+    {
+        $return = ['message' => 'Checking if "'.$logFile->getName().'" is accessible'];
         try {
-            if(!LogFileCache::isSourceFileAccessible($logFile)) {
-                throw new \Exception("File does not exist on target file system.");
+            if (!LogFileCache::isSourceFileAccessible($logFile)) {
+                throw new \Exception('File does not exist on target file system.');
             }
             $return['status'] = 'ok';
         } catch (\Exception $e) {
             $return['status'] = 'fail';
             $return['error'] = $e->getMessage();
         }
-        
+
         return $return;
     }
 
