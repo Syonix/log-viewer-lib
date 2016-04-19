@@ -92,7 +92,7 @@ class LintCommand extends Command
         }
         $checkLines[] = $line;
 
-        if (isset($check['error']) && $check['error'] != "") {
+        if (isset($check['error']) && $check['error'] != '') {
             $prefix = $check['status'] == 'warn' ? '<fg=yellow>Warning:</>' : '<fg=red>Error:</>';
             $checkLines[][] = new TableCell($indentation.'  '.$prefix.' '.$check['error'], ['colspan' => 2]);
         }

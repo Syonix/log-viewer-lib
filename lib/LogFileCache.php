@@ -66,42 +66,43 @@ class LogFileCache
         }
     }
 
-    private static function getFilesystem($args) {
-        switch($args['type']) {
+    private static function getFilesystem($args)
+    {
+        switch ($args['type']) {
             case 'ftp':
                 $default = [
-                    'port' => 21,
+                    'port'    => 21,
                     'passive' => true,
-                    'ssl' => false,
-                    'timeout' => 30
+                    'ssl'     => false,
+                    'timeout' => 30,
                 ];
-                $args['filesystem'] = new Filesystem(new Ftp(array(
-                    'host' => $args['host'],
+                $args['filesystem'] = new Filesystem(new Ftp([
+                    'host'     => $args['host'],
                     'username' => $args['username'],
                     'password' => $args['password'],
-                    'port' => isset($args['port']) ? $args['port'] : $default['port'],
-                    'passive' => isset($args['passive']) ? $args['passive'] : $default['passive'],
-                    'ssl' => isset($args['ssl']) ? $args['ssl'] : $default['ssl'],
-                    'timeout' => isset($args['timeout']) ? $args['timeout'] : $default['timeout'],
-                )));
+                    'port'     => isset($args['port']) ? $args['port'] : $default['port'],
+                    'passive'  => isset($args['passive']) ? $args['passive'] : $default['passive'],
+                    'ssl'      => isset($args['ssl']) ? $args['ssl'] : $default['ssl'],
+                    'timeout'  => isset($args['timeout']) ? $args['timeout'] : $default['timeout'],
+                ]));
                 break;
             case 'sftp':
                 $default = [
-                    'port' => 21,
+                    'port'    => 21,
                     'passive' => true,
-                    'ssl' => false,
-                    'timeout' => 30
+                    'ssl'     => false,
+                    'timeout' => 30,
                 ];
                 $config = [
-                    'host' => $args['host'],
+                    'host'     => $args['host'],
                     'username' => $args['username'],
                     'password' => $args['password'],
-                    'port' => isset($args['port']) ? $args['port'] : $default['port'],
-                    'passive' => isset($args['passive']) ? $args['passive'] : $default['passive'],
-                    'ssl' => isset($args['ssl']) ? $args['ssl'] : $default['ssl'],
-                    'timeout' => isset($args['timeout']) ? $args['timeout'] : $default['timeout'],
+                    'port'     => isset($args['port']) ? $args['port'] : $default['port'],
+                    'passive'  => isset($args['passive']) ? $args['passive'] : $default['passive'],
+                    'ssl'      => isset($args['ssl']) ? $args['ssl'] : $default['ssl'],
+                    'timeout'  => isset($args['timeout']) ? $args['timeout'] : $default['timeout'],
                 ];
-                if(isset($args['private_key'])) {
+                if (isset($args['private_key'])) {
                     $config['privateKey'] = $args['private_key'];
                 }
                 $args['filesystem'] = new Filesystem(new SftpAdapter($config));
@@ -113,6 +114,7 @@ class LogFileCache
             default:
                 throw new \InvalidArgumentException('Invalid log file type: "'.$args['type'].'"');
         }
+
         return $args;
     }
 
@@ -151,6 +153,7 @@ class LogFileCache
     public static function isSourceFileAccessible(LogFile $logFile)
     {
         $args = self::getFilesystem($logFile->getArgs());
+
         return $args['filesystem']->has($args['path']);
     }
 }
