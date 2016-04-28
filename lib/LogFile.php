@@ -44,7 +44,11 @@ class LogFile
 
     public function getLines($limit = null, $offset = 0, $filter = null)
     {
+<<<<<<< HEAD
         $lines = clone $this->lines;
+=======
+        $lines = $this->lines;
+>>>>>>> origin/master
         if ($filter !== null) {
             $logger = isset($filter['logger']) ? $filter['logger'] : null;
             $minLevel = isset($filter['level']) ? $filter['level'] : 0;
