@@ -54,7 +54,7 @@ class LogFile
                 if (
                     !static::logLineHasLogger($logger, $line)
                     || !static::logLineHasMinLevel($minLevel, $line)
-                    || !static::logLineHasText($text, $line)
+                    || !static::logLineHasText($text, $line) //TODO: Configure searchMeta
                 ) {
                     $lines->removeElement($line);
                 }
@@ -85,7 +85,7 @@ class LogFile
         return array_key_exists('level', $line) && static::getLevelNumber($line['level']) >= $minLevel;
     }
 
-    private static function logLineHasText($keyword, $line, $searchContextExtra = false)
+    private static function logLineHasText($keyword, $line, $searchMeta = true)
     {
         if ($keyword === null) {
             return true;
@@ -96,7 +96,7 @@ class LogFile
         if (array_key_exists('date', $line) && strpos(strtolower($line['date']), strtolower($keyword)) !== false) {
             return true;
         }
-        if ($searchContextExtra) {
+        if ($searchMeta) {
             if (array_key_exists('context', $line)) {
                 $context = $line['context'];
                 if (array_key_exists(strtolower($keyword), $context)) {
