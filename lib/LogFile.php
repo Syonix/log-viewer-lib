@@ -1,11 +1,13 @@
 <?php
+
 namespace Syonix\LogViewer;
 
 use Doctrine\Common\Collections\ArrayCollection;
 use Monolog\Logger;
 use Psr\Log\InvalidArgumentException;
 
-class LogFile {
+class LogFile
+{
     protected $name;
     protected $slug;
     protected $clientSlug;
@@ -13,7 +15,8 @@ class LogFile {
     protected $lines;
     protected $loggers;
 
-    public function __construct($name, $clientSlug, $args) {
+    public function __construct($name, $clientSlug, $args)
+    {
         setlocale(LC_ALL, 'en_US.UTF8');
 
         $this->name = $name;
@@ -41,14 +44,14 @@ class LogFile {
 
     public function getLines($limit = null, $offset = 0, $filter = null)
     {
-        $lines = $this->lines;
-        if($filter !== null) {
+        $lines = clone $this->lines;
+        if ($filter !== null) {
             $logger = isset($filter['logger']) ? $filter['logger'] : null;
-            $minLevel= isset($filter['level']) ? $filter['level'] : 0;
+            $minLevel = isset($filter['level']) ? $filter['level'] : 0;
             $text = (isset($filter['text']) && $filter['text'] != '') ? $filter['text'] : null;
 
-            foreach($lines as $line) {
-                if(
+            foreach ($lines as $line) {
+                if (
                     !static::logLineHasLogger($logger, $line)
                     || !static::logLineHasMinLevel($minLevel, $line)
                     || !static::logLineHasText($text, $line)
@@ -57,39 +60,63 @@ class LogFile {
                 }
             }
         }
-        if(null !== $limit) {
+        if (null !== $limit) {
             return array_values($lines->slice($offset, $limit));
         }
+
         return array_values($lines->toArray());
     }
 
-    private static function logLineHasLogger($logger, $line) {
-        if($logger === null) return true;
-        return (array_key_exists('logger', $line) && $line['logger'] == $logger);
+    private static function logLineHasLogger($logger, $line)
+    {
+        if ($logger === null) {
+            return true;
+        }
+
+        return array_key_exists('logger', $line) && $line['logger'] == $logger;
     }
 
-    private static function logLineHasMinLevel($minLevel, $line) {
-        if($minLevel == 0) return true;
-        return (array_key_exists('level', $line) && static::getLevelNumber($line['level']) >= $minLevel);
+    private static function logLineHasMinLevel($minLevel, $line)
+    {
+        if ($minLevel == 0) {
+            return true;
+        }
+
+        return array_key_exists('level', $line) && static::getLevelNumber($line['level']) >= $minLevel;
     }
 
-    private static function logLineHasText($keyword, $line, $searchContextExtra = false) {
-        if($keyword === null) return true;
-        if(array_key_exists('message', $line) && strpos(strtolower($line['message']), strtolower($keyword)) !== false) return true;
-        if(array_key_exists('date', $line) && strpos(strtolower($line['date']), strtolower($keyword)) !== false) return true;
-        if($searchContextExtra) {
-            if(array_key_exists('context', $line)) {
+    private static function logLineHasText($keyword, $line, $searchContextExtra = false)
+    {
+        if ($keyword === null) {
+            return true;
+        }
+        if (array_key_exists('message', $line) && strpos(strtolower($line['message']), strtolower($keyword)) !== false) {
+            return true;
+        }
+        if (array_key_exists('date', $line) && strpos(strtolower($line['date']), strtolower($keyword)) !== false) {
+            return true;
+        }
+        if ($searchContextExtra) {
+            if (array_key_exists('context', $line)) {
                 $context = $line['context'];
-                if(array_key_exists(strtolower($keyword), $context)) return true;
-                foreach($context as $content) {
-                    if(strpos(strtolower($content), strtolower($keyword)) !== false) return true;
+                if (array_key_exists(strtolower($keyword), $context)) {
+                    return true;
+                }
+                foreach ($context as $content) {
+                    if (strpos(strtolower($content), strtolower($keyword)) !== false) {
+                        return true;
+                    }
                 }
             }
-            if(array_key_exists('extra', $line)) {
+            if (array_key_exists('extra', $line)) {
                 $extra = $line['extra'];
-                if(array_key_exists($keyword, $extra)) return true;
-                foreach($extra as $content) {
-                    if(strpos(strtolower($content), strtolower($keyword)) !== false) return true;
+                if (array_key_exists($keyword, $extra)) {
+                    return true;
+                }
+                foreach ($extra as $content) {
+                    if (strpos(strtolower($content), strtolower($keyword)) !== false) {
+                        return true;
+                    }
                 }
             }
         }
@@ -107,6 +134,7 @@ class LogFile {
         if ($filter !== null) {
             return count($this->getLines(null, 0, $filter));
         }
+
         return $this->lines->count();
     }
 
@@ -168,10 +196,10 @@ class LogFile {
 
     public function toArray()
     {
-        return array(
+        return [
             'name'    => $this->name,
             'slug'    => $this->slug,
-            'loggers' => $this->loggers
-        );
+            'loggers' => $this->loggers,
+        ];
     }
 }

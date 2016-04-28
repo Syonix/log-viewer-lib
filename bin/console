@@ -3,6 +3,7 @@
 
 set_time_limit(0);
 require __DIR__.'/../vendor/autoload.php';
+error_reporting(E_ERROR | E_PARSE);
 
 use Symfony\Component\Console\Application;
 use Syonix\LogViewer\Console\Command\LintCommand;
