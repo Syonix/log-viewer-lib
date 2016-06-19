@@ -123,6 +123,9 @@ class LogFileCache
         $args = self::getFilesystem($logFile->getArgs());
 
         $file = $args['filesystem']->read($args['path']);
+        if (pathinfo($args['path'])['extension'] === 'gz') {
+            $file = gzdecode($file);
+        }
         $lines = explode("\n", $file);
         $parser = new LineLogParser();
         if (isset($args['pattern'])) {
