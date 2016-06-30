@@ -4,11 +4,21 @@ namespace Syonix\LogViewer;
 
 use Symfony\Component\Yaml\Yaml;
 
+/**
+ * Abstracts the application configuration and includes a linter to validate the configuration.
+ *
+ * @package Syonix\LogViewer
+ */
 class Config
 {
     protected $config;
     protected $configTree;
 
+    /**
+     * Config constructor.
+     *
+     * @param array|string $config Either an array or the file contents of the config file (yaml).
+     */
     public function __construct($config)
     {
         if (is_array($config)) {
@@ -18,6 +28,14 @@ class Config
         }
     }
 
+    /**
+     * Lints a config file for syntactical and semantical correctness.
+     *
+     * @param array $config The parsed configuration to lint
+     * @param bool $verifyLogFiles Also verfy whether the log files are accessible
+     *
+     * @return array
+     */
     public static function lint($config, $verifyLogFiles = false)
     {
         $valid = true;
@@ -325,6 +343,8 @@ class Config
     }
 
     /**
+     * Returns the stored configuration (specific node or whole config)
+     *
      * @param string|null $property Dot-separated property (e.g. "date_format" or "logs.collection.log_file")
      *
      * @return mixed

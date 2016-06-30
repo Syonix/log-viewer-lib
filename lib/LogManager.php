@@ -5,6 +5,11 @@ namespace Syonix\LogViewer;
 use Doctrine\Common\Collections\ArrayCollection;
 use Syonix\LogViewer\Exceptions\NoLogsConfiguredException;
 
+/**
+ * Represents the entry point for the application
+ *
+ * @package Syonix\LogViewer
+ */
 class LogManager
 {
     protected $logCollections;
