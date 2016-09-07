@@ -207,7 +207,7 @@ class Config
         return $return;
     }
 
-    protected static function lintLogFile($name, $logFile, $verifyLogFiles)
+    protected static function lintLogFile($name, $logFile, $verifyLogFiles = false)
     {
         $return = [
             'message' => 'Checking "'.$name.'"',
@@ -343,9 +343,11 @@ class Config
     }
 
     /**
-     * Returns the stored configuration (specific node or whole config)
+     * Returns a config property if it exists and throws an exception if not.
      *
      * @param string|null $property Dot-separated property (e.g. "date_format" or "logs.collection.log_file")
+     *
+     * @throws \InvalidArgumentException
      *
      * @return mixed
      */
