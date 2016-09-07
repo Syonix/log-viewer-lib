@@ -7,9 +7,7 @@ use Monolog\Logger;
 use Psr\Log\InvalidArgumentException;
 
 /**
- * Represents a physical log file
- *
- * @package Syonix\LogViewer
+ * Represents a physical log file.
  */
 class LogFile
 {
@@ -51,7 +49,7 @@ class LogFile
     }
 
     /**
-     * Adds a line to the log file
+     * Adds a line to the log file.
      *
      * @param string $line
      *
@@ -63,7 +61,7 @@ class LogFile
     }
 
     /**
-     * Returns a log line from the file or null if the index does not exist
+     * Returns a log line from the file or null if the index does not exist.
      *
      * @param string $line
      *
@@ -75,7 +73,7 @@ class LogFile
     }
 
     /**
-     * Returns the config arguments of the log file
+     * Returns the config arguments of the log file.
      *
      * @return array
      */
@@ -203,7 +201,7 @@ class LogFile
     }
 
     /**
-     * Reverses the line order. (e.g. newest first instead of oldest first)
+     * Reverses the line order. (e.g. newest first instead of oldest first).
      */
     public function reverseLines()
     {

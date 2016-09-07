@@ -9,9 +9,7 @@ use League\Flysystem\Filesystem;
 use League\Flysystem\Sftp\SftpAdapter;
 
 /**
- * Takes care of returning log file contents
- *
- * @package Syonix\LogViewer
+ * Takes care of returning log file contents.
  */
 class LogFileAccessor
 {

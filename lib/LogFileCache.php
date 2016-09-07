@@ -2,17 +2,11 @@
 
 namespace Syonix\LogViewer;
 
-use Dubture\Monolog\Parser\LineLogParser;
-use League\Flysystem\Adapter\Ftp;
-use League\Flysystem\Adapter\Local;
 use League\Flysystem\AdapterInterface;
 use League\Flysystem\Filesystem;
-use League\Flysystem\Sftp\SftpAdapter;
 
 /**
- * Takes care of returning log file contents, either from the source or locally cached and supports various adapters
- * 
- * @package Syonix\LogViewer
+ * Takes care of returning log file contents, either from the source or locally cached and supports various adapters.
  */
 class LogFileCache
 {

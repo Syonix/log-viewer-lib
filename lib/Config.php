@@ -6,8 +6,6 @@ use Symfony\Component\Yaml\Yaml;
 
 /**
  * Abstracts the application configuration and includes a linter to validate the configuration.
- *
- * @package Syonix\LogViewer
  */
 class Config
 {
@@ -31,8 +29,8 @@ class Config
     /**
      * Lints a config file for syntactical and semantical correctness.
      *
-     * @param array $config The parsed configuration to lint
-     * @param bool $verifyLogFiles Also verfy whether the log files are accessible
+     * @param array $config         The parsed configuration to lint
+     * @param bool  $verifyLogFiles Also verfy whether the log files are accessible
      *
      * @return array
      */
@@ -118,15 +116,15 @@ class Config
                         if (!empty($logCollection)) {
                             foreach ($logCollection as $logFileKey => $logFile) {
                                 if (!array_key_exists('type', $logFile)) {
-                                    throw new \Exception('Log file "'.$logCollectionKey.'.'
-                                        .$logFileKey.'" has no type property.');
+                                    throw new \Exception('Log file "' . $logCollectionKey . '.'
+                                        . $logFileKey . '" has no type property.');
                                 }
                             }
                         }
                     }
                     if (!empty($emptyCollections)) {
                         $return['status'] = 'warn';
-                        $return['error'] = 'The following log collections have no logs: '.implode(', ', $emptyCollections);
+                        $return['error'] = 'The following log collections have no logs: ' . implode(', ', $emptyCollections);
                     }
                 }
                 if ($property != 'logs' && !array_key_exists($property, self::getValidSettings())) {
@@ -137,7 +135,7 @@ class Config
             if (!isset($return['status'])) {
                 if (!empty($unknown)) {
                     $return['status'] = 'warn';
-                    $return['error'] = 'Unknown config properties: '.implode(', ', $unknown);
+                    $return['error'] = 'Unknown config properties: ' . implode(', ', $unknown);
                 } else {
                     $return['status'] = 'ok';
                 }
@@ -161,12 +159,12 @@ class Config
                     switch (self::getValidSettings($property)['type']) {
                         case 'bool':
                             if (!is_bool($value)) {
-                                throw new \Exception('"'.$property.'" must be a boolean value.');
+                                throw new \Exception('"' . $property . '" must be a boolean value.');
                             }
                             break;
                         case 'int':
                             if (!is_int($value)) {
-                                throw new \Exception('"'.$property.'" must be an integer value.');
+                                throw new \Exception('"' . $property . '" must be an integer value.');
                             }
                             break;
                     }
@@ -184,12 +182,12 @@ class Config
     protected static function lintLogCollection($name, $logCollection)
     {
         $return = [
-            'message' => 'Checking "'.$name.'"',
+            'message' => 'Checking "' . $name . '"',
         ];
         try {
             if (empty($logCollection)) {
                 $return['status'] = 'warn';
-                $return['error'] = '"'.$name.'" has no log files.';
+                $return['error'] = '"' . $name . '" has no log files.';
             } else {
                 foreach ($logCollection as $logFileName => $logFile) {
                     $return['sub_checks'][$logFileName] = self::lintLogFile($logFileName, $logFile);
@@ -210,11 +208,11 @@ class Config
     protected static function lintLogFile($name, $logFile, $verifyLogFiles = false)
     {
         $return = [
-            'message' => 'Checking "'.$name.'"',
+            'message' => 'Checking "' . $name . '"',
         ];
         try {
             if (!array_key_exists($logFile['type'], self::getValidLogTypes())) {
-                throw new \Exception('"'.$logFile['type'].'" is not a supported type.');
+                throw new \Exception('"' . $logFile['type'] . '" is not a supported type.');
             }
             if ($verifyLogFiles) {
                 $return['checks'][$name] = self::lintCheckFileAccessible(new LogFile($name, null, $logFile));
@@ -233,7 +231,7 @@ class Config
 
     protected static function lintCheckFileAccessible(LogFile $logFile)
     {
-        $return = ['message' => 'Checking if "'.$logFile->getName().'" is accessible'];
+        $return = ['message' => 'Checking if "' . $logFile->getName() . '" is accessible'];
         try {
             if (!LogFileCache::isSourceFileAccessible($logFile)) {
                 throw new \Exception('File does not exist on target file system.');
@@ -255,33 +253,33 @@ class Config
     protected static function getValidSettings($key = null)
     {
         $settings = [
-            'debug' => [
-                'type'      => 'bool',
-                'default'   => false,
+            'debug'              => [
+                'type'    => 'bool',
+                'default' => false,
             ],
-            'display_logger' => [
-                'type'      => 'bool',
-                'default'   => false,
+            'display_logger'     => [
+                'type'    => 'bool',
+                'default' => false,
             ],
             'reverse_line_order' => [
-                'type'      => 'bool',
-                'default'   => true,
+                'type'    => 'bool',
+                'default' => true,
             ],
-            'date_format' => [
-                'type'      => 'string',
-                'default'   => 'dd.MM.yyyy HH:mm:ss',
+            'date_format'        => [
+                'type'    => 'string',
+                'default' => 'dd.MM.yyyy HH:mm:ss',
             ],
-            'timezone' => [
-                'type'      => 'string',
-                'default'   => 'Europe/Zurich',
+            'timezone'           => [
+                'type'    => 'string',
+                'default' => 'Europe/Zurich',
             ],
-            'limit' => [
-                'type'      => 'int',
-                'default'   => 100,
+            'limit'              => [
+                'type'    => 'int',
+                'default' => 100,
             ],
-            'cache_expire' => [
-                'type'      => 'int',
-                'default'   => 300,
+            'cache_expire'       => [
+                'type'    => 'int',
+                'default' => 300,
             ],
         ];
 
@@ -291,47 +289,47 @@ class Config
     protected static function getValidLogTypes()
     {
         return [
-            'local' => [
-                'path' => [
-                    'type'      => 'string',
+            'local'   => [
+                'path'    => [
+                    'type' => 'string',
                 ],
                 'pattern' => [
-                    'type'      => 'string',
+                    'type' => 'string',
                 ],
-            ], 'ftp' => [
-                'host' => [
-                    'type'      => 'string',
+            ], 'ftp'  => [
+                'host'     => [
+                    'type' => 'string',
                 ],
                 'username' => [
-                    'type'      => 'string',
+                    'type' => 'string',
                 ],
                 'password' => [
-                    'type'      => 'string',
+                    'type' => 'string',
                 ],
-                'path' => [
-                    'type'      => 'string',
+                'path'     => [
+                    'type' => 'string',
                 ],
-                'pattern' => [
-                    'type'      => 'string',
+                'pattern'  => [
+                    'type' => 'string',
                 ],
             ], 'sftp' => [
-                'host' => [
-                    'type'      => 'string',
+                'host'        => [
+                    'type' => 'string',
                 ],
-                'username' => [
-                    'type'      => 'string',
+                'username'    => [
+                    'type' => 'string',
                 ],
-                'password' => [
-                    'type'      => 'string',
+                'password'    => [
+                    'type' => 'string',
                 ],
-                'path' => [
-                    'type'      => 'string',
+                'path'        => [
+                    'type' => 'string',
                 ],
-                'pattern' => [
-                    'type'      => 'string',
+                'pattern'     => [
+                    'type' => 'string',
                 ],
                 'private_key' => [
-                    'type'      => 'string',
+                    'type' => 'string',
                 ],
             ],
         ];
@@ -368,8 +366,8 @@ class Config
                     }
                 }
                 if ($actualNode === null) {
-                    throw new \InvalidArgumentException('The property "'.$property
-                        .'" was not found. Failed while getting node "'.$workingNode.'"');
+                    throw new \InvalidArgumentException('The property "' . $property
+                        . '" was not found. Failed while getting node "' . $workingNode . '"');
                 }
                 $workingNode = $actualNode;
             }

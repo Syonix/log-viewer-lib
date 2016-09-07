@@ -6,9 +6,7 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Syonix\LogViewer\Exceptions\NoLogsConfiguredException;
 
 /**
- * Represents the entry point for the application
- *
- * @package Syonix\LogViewer
+ * Represents the entry point for the application.
  */
 class LogManager
 {

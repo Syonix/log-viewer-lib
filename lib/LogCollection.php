@@ -5,9 +5,7 @@ namespace Syonix\LogViewer;
 use Doctrine\Common\Collections\ArrayCollection;
 
 /**
- * Represents a collection of log files belonging together
- *
- * @package Syonix\LogViewer
+ * Represents a collection of log files belonging together.
  */
 class LogCollection
 {
