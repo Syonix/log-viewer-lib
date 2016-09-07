@@ -71,6 +71,7 @@ class LogFileCache
     {
         $logFile = $this->accessor->get($logFile);
         $this->writeCache($logFile);
+
         return $logFile;
     }
 

@@ -116,15 +116,15 @@ class Config
                         if (!empty($logCollection)) {
                             foreach ($logCollection as $logFileKey => $logFile) {
                                 if (!array_key_exists('type', $logFile)) {
-                                    throw new \Exception('Log file "' . $logCollectionKey . '.'
-                                        . $logFileKey . '" has no type property.');
+                                    throw new \Exception('Log file "'.$logCollectionKey.'.'
+                                        .$logFileKey.'" has no type property.');
                                 }
                             }
                         }
                     }
                     if (!empty($emptyCollections)) {
                         $return['status'] = 'warn';
-                        $return['error'] = 'The following log collections have no logs: ' . implode(', ', $emptyCollections);
+                        $return['error'] = 'The following log collections have no logs: '.implode(', ', $emptyCollections);
                     }
                 }
                 if ($property != 'logs' && !array_key_exists($property, self::getValidSettings())) {
@@ -135,7 +135,7 @@ class Config
             if (!isset($return['status'])) {
                 if (!empty($unknown)) {
                     $return['status'] = 'warn';
-                    $return['error'] = 'Unknown config properties: ' . implode(', ', $unknown);
+                    $return['error'] = 'Unknown config properties: '.implode(', ', $unknown);
                 } else {
                     $return['status'] = 'ok';
                 }
@@ -159,12 +159,12 @@ class Config
                     switch (self::getValidSettings($property)['type']) {
                         case 'bool':
                             if (!is_bool($value)) {
-                                throw new \Exception('"' . $property . '" must be a boolean value.');
+                                throw new \Exception('"'.$property.'" must be a boolean value.');
                             }
                             break;
                         case 'int':
                             if (!is_int($value)) {
-                                throw new \Exception('"' . $property . '" must be an integer value.');
+                                throw new \Exception('"'.$property.'" must be an integer value.');
                             }
                             break;
                     }
@@ -182,12 +182,12 @@ class Config
     protected static function lintLogCollection($name, $logCollection)
     {
         $return = [
-            'message' => 'Checking "' . $name . '"',
+            'message' => 'Checking "'.$name.'"',
         ];
         try {
             if (empty($logCollection)) {
                 $return['status'] = 'warn';
-                $return['error'] = '"' . $name . '" has no log files.';
+                $return['error'] = '"'.$name.'" has no log files.';
             } else {
                 foreach ($logCollection as $logFileName => $logFile) {
                     $return['sub_checks'][$logFileName] = self::lintLogFile($logFileName, $logFile);
@@ -208,11 +208,11 @@ class Config
     protected static function lintLogFile($name, $logFile, $verifyLogFiles = false)
     {
         $return = [
-            'message' => 'Checking "' . $name . '"',
+            'message' => 'Checking "'.$name.'"',
         ];
         try {
             if (!array_key_exists($logFile['type'], self::getValidLogTypes())) {
-                throw new \Exception('"' . $logFile['type'] . '" is not a supported type.');
+                throw new \Exception('"'.$logFile['type'].'" is not a supported type.');
             }
             if ($verifyLogFiles) {
                 $return['checks'][$name] = self::lintCheckFileAccessible(new LogFile($name, null, $logFile));
@@ -231,7 +231,7 @@ class Config
 
     protected static function lintCheckFileAccessible(LogFile $logFile)
     {
-        $return = ['message' => 'Checking if "' . $logFile->getName() . '" is accessible'];
+        $return = ['message' => 'Checking if "'.$logFile->getName().'" is accessible'];
         try {
             if (!LogFileCache::isSourceFileAccessible($logFile)) {
                 throw new \Exception('File does not exist on target file system.');
@@ -366,8 +366,8 @@ class Config
                     }
                 }
                 if ($actualNode === null) {
-                    throw new \InvalidArgumentException('The property "' . $property
-                        . '" was not found. Failed while getting node "' . $workingNode . '"');
+                    throw new \InvalidArgumentException('The property "'.$property
+                        .'" was not found. Failed while getting node "'.$workingNode.'"');
                 }
                 $workingNode = $actualNode;
             }
