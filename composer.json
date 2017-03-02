@@ -1,5 +1,5 @@
 {
-    "name": "aglipanci/log-viewer-lib",
+    "name": "syonix/log-viewer-lib",
     "description": "A library to gather log files from different sources and use them in a unified format.",
     "keywords": ["monolog", "viewer", "log","logging"],
     "type": "library",
