@@ -3,7 +3,7 @@
     "description": "A library to gather log files from different sources and use them in a unified format.",
     "keywords": ["monolog", "viewer", "log","logging"],
     "type": "library",
-    "license": "GPL-2.0",
+    "license": "GPL-2.0-or-later",
     "authors": [
         {
             "name": "Michael Burri",
