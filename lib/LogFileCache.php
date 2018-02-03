@@ -13,14 +13,12 @@ class LogFileCache
     private $cache;
     private $accessor;
     private $expire;
-    private $reverse;
 
     public function __construct(AdapterInterface $adapter, $expire = 300, $reverse = true)
     {
         $this->cache = new Filesystem($adapter);
         $this->accessor = new LogFileAccessor($reverse);
         $this->expire = $expire;
-        $this->reverse = $reverse;
     }
 
     public function get(LogFile $logFile)
