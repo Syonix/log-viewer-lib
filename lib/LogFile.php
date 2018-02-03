@@ -209,7 +209,7 @@ class LogFile
     }
 
     /**
-     * Returns the number of lines in the log file
+     * Returns the number of lines in the log file.
      *
      * @param array|null $filter
      *
@@ -266,7 +266,7 @@ class LogFile
         $levels = Logger::getLevels();
 
         if (!isset($levels[$level])) {
-            throw new InvalidArgumentException('Level "' . $level . '" is not defined, use one of: ' . implode(', ', $levels));
+            throw new InvalidArgumentException('Level "'.$level.'" is not defined, use one of: '.implode(', ', $levels));
         }
 
         return $levels[$level];
@@ -284,7 +284,7 @@ class LogFile
 
     public function getIdentifier()
     {
-        return $this->collectionSlug . '/' . $this->slug;
+        return $this->collectionSlug.'/'.$this->slug;
     }
 
     public function toArray()
