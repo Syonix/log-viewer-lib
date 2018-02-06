@@ -29,6 +29,7 @@ class LogFileAccessor
                     'passive' => true,
                     'ssl'     => false,
                     'timeout' => 30,
+                    'root'    => '/',
                 ];
                 $args['filesystem'] = new Filesystem(new Ftp([
                     'host'     => $args['host'],
@@ -38,6 +39,7 @@ class LogFileAccessor
                     'passive'  => isset($args['passive']) ? $args['passive'] : $default['passive'],
                     'ssl'      => isset($args['ssl']) ? $args['ssl'] : $default['ssl'],
                     'timeout'  => isset($args['timeout']) ? $args['timeout'] : $default['timeout'],
+                    'root'     => isset($args['root']) ? $args['root'] : $default['root'],
                 ]));
                 break;
             case 'sftp':
@@ -46,6 +48,7 @@ class LogFileAccessor
                     'passive' => true,
                     'ssl'     => false,
                     'timeout' => 30,
+                    'root'    => '/',
                 ];
                 $config = [
                     'host'     => $args['host'],
@@ -55,6 +58,7 @@ class LogFileAccessor
                     'passive'  => isset($args['passive']) ? $args['passive'] : $default['passive'],
                     'ssl'      => isset($args['ssl']) ? $args['ssl'] : $default['ssl'],
                     'timeout'  => isset($args['timeout']) ? $args['timeout'] : $default['timeout'],
+                    'root'     => isset($args['root']) ? $args['root'] : $default['root'],
                 ];
                 if (isset($args['private_key'])) {
                     $config['privateKey'] = $args['private_key'];

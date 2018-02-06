@@ -57,7 +57,7 @@ class LogFileCache
 
     public function emptyCache()
     {
-        $cache = $this->cache->get('/')->getContents();
+        $cache = $this->cache->listContents('/');
         foreach ($cache as $file) {
             if ($file['type'] == 'file' && substr($file['basename'], 0, 1) !== '.') {
                 $this->cache->delete($file['path']);
