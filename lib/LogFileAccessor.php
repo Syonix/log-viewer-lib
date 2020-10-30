@@ -3,6 +3,7 @@
 namespace Syonix\LogViewer;
 
 use Dubture\Monolog\Parser\LineLogParser;
+use InvalidArgumentException;
 use League\Flysystem\Adapter\Ftp;
 use League\Flysystem\Adapter\Local;
 use League\Flysystem\Filesystem;
@@ -30,15 +31,17 @@ class LogFileAccessor
                     'ssl'     => false,
                     'timeout' => 30,
                 ];
+
                 $args['filesystem'] = new Filesystem(new Ftp([
                     'host'     => $args['host'],
                     'username' => $args['username'],
                     'password' => $args['password'],
-                    'port'     => isset($args['port']) ? $args['port'] : $default['port'],
-                    'passive'  => isset($args['passive']) ? $args['passive'] : $default['passive'],
-                    'ssl'      => isset($args['ssl']) ? $args['ssl'] : $default['ssl'],
-                    'timeout'  => isset($args['timeout']) ? $args['timeout'] : $default['timeout'],
+                    'port'     => $args['port'] ?? $default['port'],
+                    'passive'  => $args['passive'] ?? $default['passive'],
+                    'ssl'      => $args['ssl'] ?? $default['ssl'],
+                    'timeout'  => $args['timeout'] ?? $default['timeout'],
                 ]));
+
                 break;
             case 'sftp':
                 $default = [
@@ -47,18 +50,20 @@ class LogFileAccessor
                     'ssl'     => false,
                     'timeout' => 30,
                 ];
+
                 $config = [
                     'host'     => $args['host'],
                     'username' => $args['username'],
                     'password' => $args['password'],
-                    'port'     => isset($args['port']) ? $args['port'] : $default['port'],
-                    'passive'  => isset($args['passive']) ? $args['passive'] : $default['passive'],
-                    'ssl'      => isset($args['ssl']) ? $args['ssl'] : $default['ssl'],
-                    'timeout'  => isset($args['timeout']) ? $args['timeout'] : $default['timeout'],
+                    'port'     => $args['port'] ?? $default['port'],
+                    'passive'  => $args['passive'] ?? $default['passive'],
+                    'ssl'      => $args['ssl'] ?? $default['ssl'],
+                    'timeout'  => $args['timeout'] ?? $default['timeout'],
                 ];
-                if (isset($args['private_key'])) {
+
+                if (isset($args['private_key']))
                     $config['privateKey'] = $args['private_key'];
-                }
+
                 $args['filesystem'] = new Filesystem(new SftpAdapter($config));
                 break;
             case 'local':
@@ -66,7 +71,7 @@ class LogFileAccessor
                 $args['path'] = basename($args['path']);
                 break;
             default:
-                throw new \InvalidArgumentException('Invalid log file type: "'.$args['type'].'"');
+                throw new InvalidArgumentException('Invalid log file type: "'.$args['type'].'"');
         }
 
         return $args;
@@ -77,31 +82,31 @@ class LogFileAccessor
         $args = self::getFilesystem($logFile->getArgs());
 
         $file = $args['filesystem']->read($args['path']);
-        if (pathinfo($args['path'])['extension'] === 'gz') {
+
+        if (pathinfo($args['path'])['extension'] === 'gz')
             $file = gzdecode($file);
-        }
+
         $lines = explode("\n", $file);
         $parser = new LineLogParser();
-        if (isset($args['pattern'])) {
-            $hasCustomPattern = true;
+	    $hasCustomPattern = isset($args['pattern']);
+
+        if ($hasCustomPattern)
             $parser->registerPattern('custom', $args['pattern']);
-        } else {
-            $hasCustomPattern = false;
-        }
 
         foreach ($lines as $line) {
             $entry = ($hasCustomPattern ? $parser->parse($line, 0, 'custom') : $parser->parse($line, 0));
-            if (count($entry) > 0) {
-                if (!$logFile->hasLogger($entry['logger'])) {
-                    $logFile->addLogger($entry['logger']);
-                }
-                $logFile->addLine($entry);
-            }
+
+            if (count($entry) === 0)
+                continue;
+
+            if (!$logFile->hasLogger($entry['logger']))
+                $logFile->addLogger($entry['logger']);
+
+            $logFile->addLine($entry);
         }
 
-        if ($this->reverse) {
+        if ($this->reverse)
             $logFile->reverseLines();
-        }
 
         return $logFile;
     }

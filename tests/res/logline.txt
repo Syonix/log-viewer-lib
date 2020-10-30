@@ -1,0 +1,2 @@
+[2020-10-09T13:19:31.101104+02:00] channel.DEBUG: This is the debug message [] {"k1":"v1","k2":"v2"}
+[2020-10-08T13:10:30.101104+02:00] channel.WARNING: This is the warning message [] {"k1":"v1","k2":"v2"}

@@ -17,19 +17,21 @@ class LogManager
     {
         setlocale(LC_ALL, 'en_US.UTF8');
 
-        $this->logCollections = new ArrayCollection();
+        $this->logCollections = new ArrayCollection;
 
-        if (count($logs) == 0) {
-            throw new NoLogsConfiguredException();
-        }
+        if (count($logs) === 0)
+            throw new NoLogsConfiguredException;
+
         foreach ($logs as $logCollectionName => $logCollectionLogs) {
-            if (count($logCollectionLogs) > 0) {
-                $logCollection = new LogCollection($logCollectionName);
-                foreach ($logCollectionLogs as $logName => $args) {
-                    $logCollection->addLog(new LogFile($logName, $logCollection->getSlug(), $args));
-                }
-                $this->logCollections->add($logCollection);
-            }
+	        if (count($logCollectionLogs) === 0)
+	        	continue;
+
+	        $logCollection = new LogCollection($logCollectionName);
+
+            foreach ($logCollectionLogs as $logName => $args)
+                $logCollection->addLog(new LogFile($logName, $logCollection->getSlug(), $args));
+
+            $this->logCollections->add($logCollection);
         }
     }
 
@@ -50,11 +52,9 @@ class LogManager
      */
     public function getLogCollection($slug)
     {
-        foreach ($this->logCollections as $logCollection) {
-            if ($logCollection->getSlug() == $slug) {
+        foreach ($this->logCollections as $logCollection)
+            if ($logCollection->getSlug() == $slug)
                 return $logCollection;
-            }
-        }
     }
 
     /**

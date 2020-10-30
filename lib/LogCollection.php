@@ -3,6 +3,7 @@
 namespace Syonix\LogViewer;
 
 use Doctrine\Common\Collections\ArrayCollection;
+use URLify;
 
 /**
  * Represents a collection of log files belonging together.
@@ -15,10 +16,10 @@ class LogCollection
 
     public function __construct($name = null)
     {
-        $this->logs = new ArrayCollection();
-        if ($name !== null) {
+        $this->logs = new ArrayCollection;
+
+        if ($name !== null)
             $this->setName($name);
-        }
     }
 
     public function getName()
@@ -29,7 +30,7 @@ class LogCollection
     public function setName($name)
     {
         $this->name = $name;
-        $this->slug = \URLify::filter($name);
+        $this->slug = URLify::filter($name);
     }
 
     public function getSlug()
@@ -39,18 +40,16 @@ class LogCollection
 
     public function addLog(LogFile $log)
     {
-        if (!$this->logs->contains($log)) {
+        if (!$this->logs->contains($log))
             $this->logs->add($log);
-        }
 
         return $this;
     }
 
     public function removeLog(LogFile $log)
     {
-        if ($this->logs->contains($log)) {
+        if ($this->logs->contains($log))
             $this->logs->remove($log);
-        }
 
         return $this;
     }
@@ -67,11 +66,11 @@ class LogCollection
      */
     public function getLog($slug)
     {
-        foreach ($this->logs as $log) {
-            if ($log->getSlug() == $slug) {
+        foreach ($this->logs as $log)
+            if ($log->getSlug() == $slug)
                 return $log;
-            }
-        }
+
+        return null;
     }
 
     /**
@@ -84,21 +83,18 @@ class LogCollection
 
     public function logExists($log)
     {
-        foreach ($this->logs as $existing_log) {
-            if ($existing_log->getSlug() == $log) {
-                return true;
-            }
-        }
+        $ok = false;
+        foreach ($this->logs as $existing_log)
+            $ok = $ok || $existing_log->getSlug() === $log;
 
-        return false;
+        return $ok;
     }
 
     public function toArray()
     {
         $logs = [];
-        foreach ($this->logs as $log) {
+        foreach ($this->logs as $log)
             $logs[] = $log->toArray();
-        }
 
         return [
             'name' => $this->name,
