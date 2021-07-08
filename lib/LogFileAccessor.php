@@ -67,8 +67,27 @@ class LogFileAccessor
                 $args['filesystem'] = new Filesystem(new SftpAdapter($config));
                 break;
             case 'local':
-                $args['filesystem'] = new Filesystem(new Local(dirname($args['path'])));
-                $args['path'] = basename($args['path']);
+                if($args['filePattern']){
+                    date_default_timezone_set('Europe/Madrid'); //change to your timezone
+                    $directory = dirname($args['filePattern']).DIRECTORY_SEPARATOR;
+                    $files = scandir($directory);
+                    $files = array_diff($files, array('.', '..'));
+                    foreach($files as $file) {
+
+                        if(!preg_match(basename($args['path'], $file) && !is_dir($directory . $file))){
+
+                            $time["$file"] = filemtime($directory . $file);
+                        }
+                    }
+                    array_multisort($time);
+                    end($time);
+                    $first_key = key($time);
+                    $args['filesystem'] = new Filesystem(new Local($directory));
+                    $args['path'] =$first_key;
+                }else{
+                    $args['filesystem'] = new Filesystem(new Local(dirname($args['path'])));
+                    $args['path'] = basename($args['path']);
+                }
                 break;
             default:
                 throw new InvalidArgumentException('Invalid log file type: "'.$args['type'].'"');
