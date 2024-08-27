@@ -14,107 +14,107 @@ use League\Flysystem\Sftp\SftpAdapter;
  */
 class LogFileAccessor
 {
-    private $reverse;
+	private $reverse;
 
-    public function __construct($reverse = true)
-    {
-        $this->reverse = $reverse;
-    }
+	public function __construct($reverse = true)
+	{
+		$this->reverse = $reverse;
+	}
 
-    private static function getFilesystem($args)
-    {
-        switch ($args['type']) {
-            case 'ftp':
-                $default = [
-                    'port'    => 21,
-                    'passive' => true,
-                    'ssl'     => false,
-                    'timeout' => 30,
-                ];
+	public static function isAccessible(LogFile $logFile)
+	{
+		$args = self::getFilesystem($logFile->getArgs());
 
-                $args['filesystem'] = new Filesystem(new Ftp([
-                    'host'     => $args['host'],
-                    'username' => $args['username'],
-                    'password' => $args['password'],
-                    'port'     => $args['port'] ?? $default['port'],
-                    'passive'  => $args['passive'] ?? $default['passive'],
-                    'ssl'      => $args['ssl'] ?? $default['ssl'],
-                    'timeout'  => $args['timeout'] ?? $default['timeout'],
-                ]));
+		return $args['filesystem']->has($args['path']);
+	}
 
-                break;
-            case 'sftp':
-                $default = [
-                    'port'    => 21,
-                    'passive' => true,
-                    'ssl'     => false,
-                    'timeout' => 30,
-                ];
+	public function get(LogFile $logFile)
+	{
+		$args = self::getFilesystem($logFile->getArgs());
 
-                $config = [
-                    'host'     => $args['host'],
-                    'username' => $args['username'],
-                    'password' => $args['password'],
-                    'port'     => $args['port'] ?? $default['port'],
-                    'passive'  => $args['passive'] ?? $default['passive'],
-                    'ssl'      => $args['ssl'] ?? $default['ssl'],
-                    'timeout'  => $args['timeout'] ?? $default['timeout'],
-                ];
+		$file = $args['filesystem']->read($args['path']);
 
-                if (isset($args['private_key']))
-                    $config['privateKey'] = $args['private_key'];
+		if (pathinfo($args['path'])['extension'] === 'gz')
+			$file = gzdecode($file);
 
-                $args['filesystem'] = new Filesystem(new SftpAdapter($config));
-                break;
-            case 'local':
-                $args['filesystem'] = new Filesystem(new Local(dirname($args['path'])));
-                $args['path'] = basename($args['path']);
-                break;
-            default:
-                throw new InvalidArgumentException('Invalid log file type: "'.$args['type'].'"');
-        }
+		$lines = explode("\n", $file);
+		$parser = new LineLogParser();
+		$hasCustomPattern = isset($args['pattern']);
 
-        return $args;
-    }
+		if ($hasCustomPattern)
+			$parser->registerPattern('custom', $args['pattern']);
 
-    public function get(LogFile $logFile)
-    {
-        $args = self::getFilesystem($logFile->getArgs());
+		foreach ($lines as $line) {
+			$entry = ($hasCustomPattern ? $parser->parse($line, 0, 'custom') : $parser->parse($line, 0));
 
-        $file = $args['filesystem']->read($args['path']);
+			if (count($entry) === 0)
+				continue;
 
-        if (pathinfo($args['path'])['extension'] === 'gz')
-            $file = gzdecode($file);
+			if (!$logFile->hasLogger($entry['logger']))
+				$logFile->addLogger($entry['logger']);
 
-        $lines = explode("\n", $file);
-        $parser = new LineLogParser();
-	    $hasCustomPattern = isset($args['pattern']);
+			$logFile->addLine($entry);
+		}
 
-        if ($hasCustomPattern)
-            $parser->registerPattern('custom', $args['pattern']);
+		if ($this->reverse)
+			$logFile->reverseLines();
 
-        foreach ($lines as $line) {
-            $entry = ($hasCustomPattern ? $parser->parse($line, 0, 'custom') : $parser->parse($line, 0));
+		return $logFile;
+	}
 
-            if (count($entry) === 0)
-                continue;
+	private static function getFilesystem($args)
+	{
+		switch ($args['type']) {
+			case 'ftp':
+				$default = [
+					'port' => 21,
+					'passive' => true,
+					'ssl' => false,
+					'timeout' => 30,
+				];
 
-            if (!$logFile->hasLogger($entry['logger']))
-                $logFile->addLogger($entry['logger']);
+				$args['filesystem'] = new Filesystem(new Ftp([
+					'host' => $args['host'],
+					'username' => $args['username'],
+					'password' => $args['password'],
+					'port' => $args['port'] ?? $default['port'],
+					'passive' => $args['passive'] ?? $default['passive'],
+					'ssl' => $args['ssl'] ?? $default['ssl'],
+					'timeout' => $args['timeout'] ?? $default['timeout'],
+				]));
 
-            $logFile->addLine($entry);
-        }
+				break;
+			case 'sftp':
+				$default = [
+					'port' => 21,
+					'passive' => true,
+					'ssl' => false,
+					'timeout' => 30,
+				];
 
-        if ($this->reverse)
-            $logFile->reverseLines();
+				$config = [
+					'host' => $args['host'],
+					'username' => $args['username'],
+					'password' => $args['password'],
+					'port' => $args['port'] ?? $default['port'],
+					'passive' => $args['passive'] ?? $default['passive'],
+					'ssl' => $args['ssl'] ?? $default['ssl'],
+					'timeout' => $args['timeout'] ?? $default['timeout'],
+				];
 
-        return $logFile;
-    }
+				if (isset($args['private_key']))
+					$config['privateKey'] = $args['private_key'];
 
-    public static function isAccessible(LogFile $logFile)
-    {
-        $args = self::getFilesystem($logFile->getArgs());
+				$args['filesystem'] = new Filesystem(new SftpAdapter($config));
+				break;
+			case 'local':
+				$args['filesystem'] = new Filesystem(new Local(dirname($args['path'])));
+				$args['path'] = basename($args['path']);
+				break;
+			default:
+				throw new InvalidArgumentException('Invalid log file type: "' . $args['type'] . '"');
+		}
 
-        return $args['filesystem']->has($args['path']);
-    }
+		return $args;
+	}
 }

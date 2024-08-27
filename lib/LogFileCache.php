@@ -10,71 +10,71 @@ use League\Flysystem\Filesystem;
  */
 class LogFileCache
 {
-    private $cache;
-    private $accessor;
-    private $expire;
+	private $cache;
+	private $accessor;
+	private $expire;
 
-    public function __construct(AdapterInterface $adapter, $expire = 300, $reverse = true)
-    {
-        $this->cache = new Filesystem($adapter);
-        $this->accessor = new LogFileAccessor($reverse);
-        $this->expire = $expire;
-    }
+	public function __construct(AdapterInterface $adapter, $expire = 300, $reverse = true)
+	{
+		$this->cache = new Filesystem($adapter);
+		$this->accessor = new LogFileAccessor($reverse);
+		$this->expire = $expire;
+	}
 
-    public function get(LogFile $logFile)
-    {
-        if ($this->cache->has($this->getFilename($logFile))) {
-            $timestamp = $this->cache->getTimestamp($this->getFilename($logFile));
-            if ($timestamp > (time() - $this->expire)) {
-                return $this->readCache($logFile);
-            } else {
-                $this->deleteCache($logFile);
-            }
-        }
+	public static function isSourceFileAccessible(LogFile $logFile)
+	{
+		return LogFileAccessor::isAccessible($logFile);
+	}
 
-        return $this->loadSource($logFile);
-    }
+	public function emptyCache()
+	{
+		$cache = $this->cache->get('/')->getContents();
+		foreach ($cache as $file) {
+			if ($file['type'] == 'file' && substr($file['basename'], 0, 1) !== '.') {
+				$this->cache->delete($file['path']);
+			}
+		}
+	}
 
-    private function getFilename(LogFile $logFile)
-    {
-        return base64_encode($logFile->getIdentifier());
-    }
+	public function get(LogFile $logFile)
+	{
+		if ($this->cache->has($this->getFilename($logFile))) {
+			$timestamp = $this->cache->getTimestamp($this->getFilename($logFile));
+			if ($timestamp > (time() - $this->expire)) {
+				return $this->readCache($logFile);
+			} else {
+				$this->deleteCache($logFile);
+			}
+		}
 
-    private function writeCache(LogFile $logFile)
-    {
-        $this->cache->write($this->getFilename($logFile), serialize($logFile));
-    }
+		return $this->loadSource($logFile);
+	}
 
-    private function readCache(LogFile $logFile)
-    {
-        return unserialize($this->cache->get($this->getFilename($logFile))->read());
-    }
+	private function readCache(LogFile $logFile)
+	{
+		return unserialize($this->cache->get($this->getFilename($logFile))->read());
+	}
 
-    private function deleteCache(LogFile $logFile)
-    {
-        $this->cache->delete($this->getFilename($logFile));
-    }
+	private function deleteCache(LogFile $logFile)
+	{
+		$this->cache->delete($this->getFilename($logFile));
+	}
 
-    public function emptyCache()
-    {
-        $cache = $this->cache->get('/')->getContents();
-        foreach ($cache as $file) {
-            if ($file['type'] == 'file' && substr($file['basename'], 0, 1) !== '.') {
-                $this->cache->delete($file['path']);
-            }
-        }
-    }
+	private function loadSource(LogFile $logFile)
+	{
+		$logFile = $this->accessor->get($logFile);
+		$this->writeCache($logFile);
 
-    private function loadSource(LogFile $logFile)
-    {
-        $logFile = $this->accessor->get($logFile);
-        $this->writeCache($logFile);
+		return $logFile;
+	}
 
-        return $logFile;
-    }
+	private function writeCache(LogFile $logFile)
+	{
+		$this->cache->write($this->getFilename($logFile), serialize($logFile));
+	}
 
-    public static function isSourceFileAccessible(LogFile $logFile)
-    {
-        return LogFileAccessor::isAccessible($logFile);
-    }
+	private function getFilename(LogFile $logFile)
+	{
+		return base64_encode($logFile->getIdentifier());
+	}
 }

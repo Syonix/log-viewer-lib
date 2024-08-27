@@ -49,6 +49,11 @@ class LogFile
 		$this->loggers = new ArrayCollection;
 	}
 
+	public static function getLevelName($level)
+	{
+		return Logger::getLevelName($level);
+	}
+
 	/**
 	 * Adds a line to the log file.
 	 *
@@ -81,6 +86,38 @@ class LogFile
 	public function getArgs()
 	{
 		return $this->args;
+	}
+
+	/**
+	 * Reverses the line order. (e.g. newest first instead of oldest first).
+	 */
+	public function reverseLines()
+	{
+		$this->lines = new ArrayCollection(array_reverse($this->lines->toArray(), false));
+	}
+
+	public function toArray()
+	{
+		return [
+			'name' => $this->name,
+			'slug' => $this->slug,
+			'loggers' => $this->loggers,
+		];
+	}
+
+	/**
+	 * Returns the number of lines in the log file.
+	 *
+	 * @param array|null $filter
+	 *
+	 * @return int
+	 */
+	public function countLines($filter = null)
+	{
+		if ($filter !== null)
+			return count($this->getLines(null, 0, $filter));
+
+		return $this->lines->count();
 	}
 
 	/**
@@ -156,6 +193,28 @@ class LogFile
 	}
 
 	/**
+	 * Returns the associated number for a log level string.
+	 *
+	 * @param string $level
+	 *
+	 * @return int
+	 */
+	public static function getLevelNumber($level)
+	{
+		$levels = Logger::getLevels();
+
+		if (!isset($levels[$level]))
+			throw new InvalidArgumentException('Level "' . $level . '" is not defined, use one of: ' . implode(', ', $levels));
+
+		return $levels[$level];
+	}
+
+	public static function getLevels()
+	{
+		return Logger::getLevels();
+	}
+
+	/**
 	 * Internal filtering method for determining whether a log line contains a specific string.
 	 *
 	 * @param string $keyword
@@ -184,29 +243,6 @@ class LogFile
 		return $ok;
 	}
 
-	/**
-	 * Reverses the line order. (e.g. newest first instead of oldest first).
-	 */
-	public function reverseLines()
-	{
-		$this->lines = new ArrayCollection(array_reverse($this->lines->toArray(), false));
-	}
-
-	/**
-	 * Returns the number of lines in the log file.
-	 *
-	 * @param array|null $filter
-	 *
-	 * @return int
-	 */
-	public function countLines($filter = null)
-	{
-		if ($filter !== null)
-			return count($this->getLines(null, 0, $filter));
-
-		return $this->lines->count();
-	}
-
 	public function getName()
 	{
 		return $this->name;
@@ -232,33 +268,6 @@ class LogFile
 		return $this->loggers->add($logger);
 	}
 
-	public static function getLevelName($level)
-	{
-		return Logger::getLevelName($level);
-	}
-
-	/**
-	 * Returns the associated number for a log level string.
-	 *
-	 * @param string $level
-	 *
-	 * @return int
-	 */
-	public static function getLevelNumber($level)
-	{
-		$levels = Logger::getLevels();
-
-		if (!isset($levels[$level]))
-			throw new InvalidArgumentException('Level "' . $level . '" is not defined, use one of: ' . implode(', ', $levels));
-
-		return $levels[$level];
-	}
-
-	public static function getLevels()
-	{
-		return Logger::getLevels();
-	}
-
 	public function getCollectionSlug()
 	{
 		return $this->collectionSlug;
@@ -267,14 +276,5 @@ class LogFile
 	public function getIdentifier()
 	{
 		return "$this->collectionSlug/$this->slug";
-	}
-
-	public function toArray()
-	{
-		return [
-			'name' => $this->name,
-			'slug' => $this->slug,
-			'loggers' => $this->loggers,
-		];
 	}
 }
