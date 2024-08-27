@@ -2,7 +2,7 @@
 
 namespace Syonix\LogViewer;
 
-use League\Flysystem\AdapterInterface;
+use League\Flysystem\FilesystemAdapter;
 use League\Flysystem\Filesystem;
 
 /**
@@ -14,37 +14,35 @@ class LogFileCache
 	private $accessor;
 	private $expire;
 
-	public function __construct(AdapterInterface $adapter, $expire = 300, $reverse = true)
+	public function __construct(FilesystemAdapter $adapter, $expire = 300, $reverse = true)
 	{
 		$this->cache = new Filesystem($adapter);
 		$this->accessor = new LogFileAccessor($reverse);
 		$this->expire = $expire;
 	}
 
-	public static function isSourceFileAccessible(LogFile $logFile)
+	public static function isSourceFileAccessible(LogFile $logFile): bool
 	{
 		return LogFileAccessor::isAccessible($logFile);
 	}
 
-	public function emptyCache()
+	public function emptyCache(): void
 	{
-		$cache = $this->cache->get('/')->getContents();
-		foreach ($cache as $file) {
-			if ($file['type'] == 'file' && substr($file['basename'], 0, 1) !== '.') {
+		$cache = $this->cache->listContents('/');
+		foreach ($cache as $file)
+			if ($file['type'] == 'file' && substr($file['basename'], 0, 1) !== '.')
 				$this->cache->delete($file['path']);
-			}
-		}
 	}
 
 	public function get(LogFile $logFile)
 	{
-		if ($this->cache->has($this->getFilename($logFile))) {
-			$timestamp = $this->cache->getTimestamp($this->getFilename($logFile));
-			if ($timestamp > (time() - $this->expire)) {
+		if ($this->cache->fileExists($this->getFilename($logFile))) {
+			$timestamp = $this->cache->lastModified($this->getFilename($logFile));
+
+			if ($timestamp > (time() - $this->expire))
 				return $this->readCache($logFile);
-			} else {
-				$this->deleteCache($logFile);
-			}
+
+			$this->deleteCache($logFile);
 		}
 
 		return $this->loadSource($logFile);
@@ -52,7 +50,7 @@ class LogFileCache
 
 	private function readCache(LogFile $logFile)
 	{
-		return unserialize($this->cache->get($this->getFilename($logFile))->read());
+		return unserialize($this->cache->read($this->getFilename($logFile)));
 	}
 
 	private function deleteCache(LogFile $logFile)

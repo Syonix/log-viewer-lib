@@ -45,12 +45,10 @@ final class ConfigTest extends TestCase
         $this->assertEquals('local', $config->get('logs.demo.custom-pattern.type'));
     }
 
-    /**
-     * @expectedException InvalidArgumentException
-     * @expectedExceptionMessage The property "logs.Node.Not.Existing" was not found. Failed while getting node "Node"
-     */
     public function testGetNestedValueException()
     {
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('The property "logs.Node.Not.Existing" was not found. Failed while getting node "Node"');
         $config = new \Syonix\LogViewer\Config(file_get_contents(__DIR__.'/res/config_valid.yml'));
         $config->get('logs.Node.Not.Existing');
     }

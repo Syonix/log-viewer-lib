@@ -4,31 +4,33 @@ namespace Syonix\LogViewer;
 
 use Dubture\Monolog\Parser\LineLogParser;
 use InvalidArgumentException;
-use League\Flysystem\Adapter\Ftp;
-use League\Flysystem\Adapter\Local;
 use League\Flysystem\Filesystem;
-use League\Flysystem\Sftp\SftpAdapter;
+use League\Flysystem\Ftp\FtpAdapter;
+use League\Flysystem\Ftp\FtpConnectionOptions;
+use League\Flysystem\Local\LocalFilesystemAdapter;
+use League\Flysystem\PhpseclibV3\SftpAdapter;
+use League\Flysystem\PhpseclibV3\SftpConnectionProvider;
 
 /**
  * Takes care of returning log file contents.
  */
 class LogFileAccessor
 {
-	private $reverse;
+	private bool $reverse;
 
 	public function __construct($reverse = true)
 	{
 		$this->reverse = $reverse;
 	}
 
-	public static function isAccessible(LogFile $logFile)
+	public static function isAccessible(LogFile $logFile): bool
 	{
 		$args = self::getFilesystem($logFile->getArgs());
 
 		return $args['filesystem']->has($args['path']);
 	}
 
-	public function get(LogFile $logFile)
+	public function get(LogFile $logFile): LogFile
 	{
 		$args = self::getFilesystem($logFile->getArgs());
 
@@ -38,7 +40,7 @@ class LogFileAccessor
 			$file = gzdecode($file);
 
 		$lines = explode("\n", $file);
-		$parser = new LineLogParser();
+		$parser = new LineLogParser;
 		$hasCustomPattern = isset($args['pattern']);
 
 		if ($hasCustomPattern)
@@ -73,7 +75,7 @@ class LogFileAccessor
 					'timeout' => 30,
 				];
 
-				$args['filesystem'] = new Filesystem(new Ftp([
+				$args['filesystem'] = new Filesystem(new FtpAdapter(FtpConnectionOptions::fromArray([
 					'host' => $args['host'],
 					'username' => $args['username'],
 					'password' => $args['password'],
@@ -81,34 +83,31 @@ class LogFileAccessor
 					'passive' => $args['passive'] ?? $default['passive'],
 					'ssl' => $args['ssl'] ?? $default['ssl'],
 					'timeout' => $args['timeout'] ?? $default['timeout'],
-				]));
-
+				])));
 				break;
 			case 'sftp':
 				$default = [
 					'port' => 21,
-					'passive' => true,
-					'ssl' => false,
 					'timeout' => 30,
 				];
 
-				$config = [
-					'host' => $args['host'],
-					'username' => $args['username'],
-					'password' => $args['password'],
-					'port' => $args['port'] ?? $default['port'],
-					'passive' => $args['passive'] ?? $default['passive'],
-					'ssl' => $args['ssl'] ?? $default['ssl'],
-					'timeout' => $args['timeout'] ?? $default['timeout'],
-				];
-
-				if (isset($args['private_key']))
-					$config['privateKey'] = $args['private_key'];
-
-				$args['filesystem'] = new Filesystem(new SftpAdapter($config));
+				$args['filesystem'] = new Filesystem(new SftpAdapter(
+					new SftpConnectionProvider(
+						$args['host'],
+						$args['username'],
+						$args['password'],
+						$args['private_key'] ?? null,
+						$args['private_key_passphrase'] ?? null,
+						$args['port'] ?? $default['port'],
+						false, // Note: agent currently not supported. Open PR if required.
+						$args['timeout'] ?? $default['timeout'],
+						$args['max_tries'] ?? 4,
+						$args['host_fingerprint'] ?? null,
+					),
+					$args['path']));
 				break;
 			case 'local':
-				$args['filesystem'] = new Filesystem(new Local(dirname($args['path'])));
+				$args['filesystem'] = new Filesystem(new LocalFilesystemAdapter(dirname($args['path'])));
 				$args['path'] = basename($args['path']);
 				break;
 			default:

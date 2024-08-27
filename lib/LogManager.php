@@ -10,7 +10,7 @@ use Syonix\LogViewer\Exceptions\NoLogsConfiguredException;
  */
 class LogManager
 {
-	protected $logCollections;
+	protected ArrayCollection $logCollections;
 	protected $cacheDir;
 
 	public function __construct($logs)

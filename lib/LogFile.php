@@ -3,9 +3,9 @@
 namespace Syonix\LogViewer;
 
 use Doctrine\Common\Collections\ArrayCollection;
-use Monolog\Logger;
-use Psr\Log\InvalidArgumentException;
+use Monolog\Level;
 use URLify;
+use InvalidArgumentException;
 
 /**
  * Represents a physical log file.
@@ -13,22 +13,22 @@ use URLify;
 class LogFile
 {
 	/** @var string Name of the log file */
-	protected $name;
+	protected string $name;
 
 	/** @var string Auto generated url safe version of the name */
-	protected $slug;
+	protected string $slug;
 
 	/** @var string Slug of the log collection containing this log file. */
-	protected $collectionSlug;
+	protected string $collectionSlug;
 
 	/** @var array Config arguments */
-	protected $args;
+	protected array $args;
 
 	/** @var ArrayCollection The individual lines of the log file. */
-	protected $lines;
+	protected ArrayCollection $lines;
 
 	/** @var ArrayCollection All loggers used in this file. */
-	protected $loggers;
+	protected ArrayCollection $loggers;
 
 	/**
 	 * LogFile constructor.
@@ -49,41 +49,31 @@ class LogFile
 		$this->loggers = new ArrayCollection;
 	}
 
-	public static function getLevelName($level)
+	public static function getLevelName($level): ?string
 	{
-		return Logger::getLevelName($level);
+		return Level::fromValue($level)->getName();
 	}
 
 	/**
 	 * Adds a line to the log file.
-	 *
-	 * @param array $line
-	 *
-	 * @return bool
 	 */
-	public function addLine(array $line)
+	public function addLine(array $line): void
 	{
-		return $this->lines->add($line);
+		$this->lines->add($line);
 	}
 
 	/**
 	 * Returns a log line from the file or null if the index does not exist.
-	 *
-	 * @param $line
-	 *
-	 * @return array|null
 	 */
-	public function getLine($line)
+	public function getLine($line): ?array
 	{
-		return $this->lines[intval($line)];
+		return $this->lines[(int)$line] ?? null;
 	}
 
 	/**
 	 * Returns the config arguments of the log file.
-	 *
-	 * @return array
 	 */
-	public function getArgs()
+	public function getArgs(): array
 	{
 		return $this->args;
 	}
@@ -91,12 +81,12 @@ class LogFile
 	/**
 	 * Reverses the line order. (e.g. newest first instead of oldest first).
 	 */
-	public function reverseLines()
+	public function reverseLines(): void
 	{
 		$this->lines = new ArrayCollection(array_reverse($this->lines->toArray(), false));
 	}
 
-	public function toArray()
+	public function toArray(): array
 	{
 		return [
 			'name' => $this->name,
@@ -107,12 +97,8 @@ class LogFile
 
 	/**
 	 * Returns the number of lines in the log file.
-	 *
-	 * @param array|null $filter
-	 *
-	 * @return int
 	 */
-	public function countLines($filter = null)
+	public function countLines(?array $filter = null): int
 	{
 		if ($filter !== null)
 			return count($this->getLines(null, 0, $filter));
@@ -130,13 +116,13 @@ class LogFile
 	 *
 	 * @return array
 	 */
-	public function getLines($limit = null, $offset = 0, $filter = null)
+	public function getLines(?int $limit = null, int $offset = 0, ?array $filter = null): array
 	{
 		$lines = clone $this->lines;
 
 		if ($filter !== null) {
-			$logger = isset($filter['logger']) ? $filter['logger'] : null;
-			$minLevel = isset($filter['level']) ? $filter['level'] : 0;
+			$logger = $filter['logger'] ?? null;
+			$minLevel = $filter['level'] ?? 0;
 			$text = (isset($filter['text']) && $filter['text'] != '') ? $filter['text'] : null;
 			$searchMeta = isset($filter['search_meta']) ? ($filter['search_meta']) : true;
 
@@ -159,13 +145,8 @@ class LogFile
 
 	/**
 	 * Internal filtering method for determining whether a log line belongs to a specific logger.
-	 *
-	 * @param string $logger
-	 * @param array  $line
-	 *
-	 * @return bool
 	 */
-	private static function logLineHasLogger(string $logger, array $line)
+	private static function logLineHasLogger(?string $logger, array $line): bool
 	{
 		if ($logger === null)
 			return true;
@@ -175,13 +156,8 @@ class LogFile
 
 	/**
 	 * Internal filtering method for determining whether a log line has a specific minimal log level.
-	 *
-	 * @param int   $minLevel
-	 * @param array $line
-	 *
-	 * @return bool
 	 */
-	private static function logLineHasMinLevel(int $minLevel, array $line)
+	private static function logLineHasMinLevel(int $minLevel, array $line): bool
 	{
 		if ($minLevel === 0)
 			return true;
@@ -194,14 +170,10 @@ class LogFile
 
 	/**
 	 * Returns the associated number for a log level string.
-	 *
-	 * @param string $level
-	 *
-	 * @return int
 	 */
-	public static function getLevelNumber($level)
+	public static function getLevelNumber(string $level)
 	{
-		$levels = Logger::getLevels();
+		$levels = self::getLevels();
 
 		if (!isset($levels[$level]))
 			throw new InvalidArgumentException('Level "' . $level . '" is not defined, use one of: ' . implode(', ', $levels));
@@ -209,9 +181,9 @@ class LogFile
 		return $levels[$level];
 	}
 
-	public static function getLevels()
+	public static function getLevels(): array
 	{
-		return Logger::getLevels();
+		return Level::VALUES;
 	}
 
 	/**
@@ -223,11 +195,11 @@ class LogFile
 	 *
 	 * @return bool
 	 */
-	private static function logLineHasText(string $keyword, array $line, $searchMeta = true)
+	private static function logLineHasText(string $keyword, array $line, bool $searchMeta = true): bool
 	{
 		$ok = $keyword === null;
-		$ok = $ok || array_key_exists('message', $line) && strpos(strtolower($line['message']), strtolower($keyword)) !== false;
-		$ok = $ok || array_key_exists('date', $line) && strpos(strtolower($line['date']), strtolower($keyword)) !== false;
+		$ok = $ok || array_key_exists('message', $line) && str_contains(strtolower($line['message']), strtolower($keyword));
+		$ok = $ok || array_key_exists('date', $line) && str_contains(strtolower($line['date']), strtolower($keyword));
 
 		if ($ok || !$searchMeta)
 			return $ok;
@@ -238,42 +210,42 @@ class LogFile
 
 		$ok = array_key_exists(strtolower($keyword), $meta);
 		foreach ($meta as $content)
-			$ok = $ok || strpos(strtolower($content), strtolower($keyword)) !== false;
+			$ok = $ok || str_contains(strtolower($content), strtolower($keyword));
 
 		return $ok;
 	}
 
-	public function getName()
+	public function getName(): string
 	{
 		return $this->name;
 	}
 
-	public function getSlug()
+	public function getSlug(): string
 	{
 		return $this->slug;
 	}
 
-	public function getLoggers()
+	public function getLoggers(): ArrayCollection
 	{
 		return $this->loggers;
 	}
 
-	public function hasLogger($logger)
+	public function hasLogger($logger): bool
 	{
 		return $this->loggers->contains($logger);
 	}
 
-	public function addLogger($logger)
+	public function addLogger($logger): void
 	{
-		return $this->loggers->add($logger);
+		$this->loggers->add($logger);
 	}
 
-	public function getCollectionSlug()
+	public function getCollectionSlug(): string
 	{
 		return $this->collectionSlug;
 	}
 
-	public function getIdentifier()
+	public function getIdentifier(): string
 	{
 		return "$this->collectionSlug/$this->slug";
 	}
