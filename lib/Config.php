@@ -4,6 +4,7 @@ namespace Syonix\LogViewer;
 
 use Exception;
 use InvalidArgumentException;
+use RuntimeException;
 use Symfony\Component\Yaml\Yaml;
 use URLify;
 
@@ -21,6 +22,16 @@ class Config
 	public function __construct(array|string $config)
 	{
 		$this->config = is_array($config) ? $config : $this->parse($config);
+	}
+
+	public static function parseFile(string $path): ?array
+	{
+		$input = file_get_contents($path);
+
+		if ($input === false)
+			throw new RuntimeException("Failed to read config file '$path'");
+
+		return self::parse($input);
 	}
 
 	public static function parse(string $input): ?array
