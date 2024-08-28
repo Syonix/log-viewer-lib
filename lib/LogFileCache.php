@@ -4,6 +4,7 @@ namespace Syonix\LogViewer;
 
 use League\Flysystem\FilesystemAdapter;
 use League\Flysystem\Filesystem;
+use League\Flysystem\StorageAttributes;
 
 /**
  * Takes care of returning log file contents, either from the source or locally cached and supports various adapters.
@@ -31,7 +32,7 @@ class LogFileCache
 		$cache = $this->cache->listContents('/');
 
 		foreach ($cache as $file)
-			if ($file['type'] == 'file' && substr($file['basename'], 0, 1) !== '.')
+			if ($file->type() === StorageAttributes::TYPE_FILE && !str_starts_with(basename($file->path()), '.'))
 				$this->cache->delete($file['path']);
 	}
 

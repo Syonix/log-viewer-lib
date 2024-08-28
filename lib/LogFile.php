@@ -2,10 +2,13 @@
 
 namespace Syonix\LogViewer;
 
+use DateInterval;
+use DateTime;
 use Doctrine\Common\Collections\ArrayCollection;
 use Monolog\Level;
+use Psr\Log\InvalidArgumentException;
+use UnhandledMatchError;
 use URLify;
-use InvalidArgumentException;
 
 /**
  * Represents a physical log file.
@@ -30,33 +33,18 @@ class LogFile
 	/** @var ArrayCollection All loggers used in this file. */
 	protected ArrayCollection $loggers;
 
-	/**
-	 * LogFile constructor.
-	 *
-	 * @param string $name
-	 * @param string $clientSlug
-	 * @param array  $args
-	 */
-	public function __construct(string $name, string $clientSlug, array $args)
+	public function __construct(string $name, string $collectionSlug, array $args)
 	{
 		setlocale(LC_ALL, 'en_US.UTF8');
 
 		$this->name = $name;
 		$this->slug = URLify::filter($name);
-		$this->collectionSlug = URLify::filter($clientSlug);
+		$this->collectionSlug = URLify::filter($collectionSlug);
 		$this->args = $args;
 		$this->lines = new ArrayCollection;
 		$this->loggers = new ArrayCollection;
 	}
 
-	public static function getLevelName($level): ?string
-	{
-		return Level::fromValue($level)->getName();
-	}
-
-	/**
-	 * Adds a line to the log file.
-	 */
 	public function addLine(array $line): void
 	{
 		$this->lines->add($line);
@@ -79,34 +67,6 @@ class LogFile
 	}
 
 	/**
-	 * Reverses the line order. (e.g. newest first instead of oldest first).
-	 */
-	public function reverseLines(): void
-	{
-		$this->lines = new ArrayCollection(array_reverse($this->lines->toArray(), false));
-	}
-
-	public function toArray(): array
-	{
-		return [
-			'name' => $this->name,
-			'slug' => $this->slug,
-			'loggers' => $this->loggers,
-		];
-	}
-
-	/**
-	 * Returns the number of lines in the log file.
-	 */
-	public function countLines(?array $filter = null): int
-	{
-		if ($filter !== null)
-			return count($this->getLines(null, 0, $filter));
-
-		return $this->lines->count();
-	}
-
-	/**
 	 * Returns log lines, either all or paginated and or filtered.
 	 *
 	 * @param int|null   $limit  Defines how many lines are returned.
@@ -118,30 +78,66 @@ class LogFile
 	 */
 	public function getLines(?int $limit = null, int $offset = 0, ?array $filter = null): array
 	{
-		// TODO: Improve performance
-		$lines = clone $this->lines;
+		$result = clone $this->lines;
 
-		if ($filter !== null) {
-			$logger = $filter['logger'] ?? null;
-			$minLevel = $filter['level'] ?? 0;
-			$text = (isset($filter['text']) && $filter['text'] != '') ? $filter['text'] : null;
-			$searchMeta = isset($filter['search_meta']) ? ($filter['search_meta']) : true;
+		if ($filter !== null)
+			$result = $this->filter($result, $filter);
 
-			foreach ($lines as $line) {
-				$ok = true;
-				$ok = $ok || static::logLineHasLogger($logger, $line);
-				$ok = $ok || static::logLineHasMinLevel($minLevel, $line);
-				$ok = $ok || static::logLineHasText($text, $line, $searchMeta);
+		if ($limit !== null)
+			return array_values($result->slice($offset, $limit));
 
-				if (!$ok)
-					$lines->removeElement($line);
-			}
+		return array_values($result->toArray());
+	}
+
+	private function filter(ArrayCollection $lines, $filter): ArrayCollection
+	{
+		$time = $filter['time'] ?? null;
+		$logger = $filter['logger'] ?? null;
+		$minLevel = $filter['level'] ?? 0;
+		$text = (isset($filter['text']) && $filter['text'] !== '') ? $filter['text'] : null;
+		$searchMeta = $filter['search_meta'] ?? true;
+		$result = $lines;
+
+		foreach ($result as $line) {
+			$ok = true;
+			$ok = $ok && static::logLineHasTime($time, $line);
+			$ok = $ok && static::logLineHasLogger($logger, $line);
+			$ok = $ok && static::logLineHasMinLevel($minLevel, $line);
+			$ok = $ok && static::logLineHasText($text, $line, $searchMeta);
+
+			if (!$ok)
+				$result->removeElement($line);
 		}
 
-		if (null !== $limit)
-			return array_values($lines->slice($offset, $limit));
+		return $result;
+	}
 
-		return array_values($lines->toArray());
+	/**
+	 * Internal filtering method for determining whether a log line matches a specific time.
+	 */
+	private static function logLineHasTime(?string $time, $line): bool
+	{
+		if ($time === null)
+			return true;
+
+		$check = $line['date'] ?? null;
+
+		if ($check === null)
+			return false;
+
+		$now = new DateTime;
+		$diff = match ($time) {
+			'h' => new DateInterval('PT1H'),
+			'd' => new DateInterval('P1D'),
+			'w' => new DateInterval('P1W'),
+			'm' => new DateInterval('P1M'),
+			'y' => new DateInterval('P1Y'),
+			default => throw new InvalidArgumentException(sprintf('Invalid time value "%s"', $time)),
+		};
+
+		// TODO: Intervals go back whole interval (e.g. 24h for day) -> Today is not today but last 24 hours
+
+		return $check >= $now->sub($diff);
 	}
 
 	/**
@@ -152,7 +148,7 @@ class LogFile
 		if ($logger === null)
 			return true;
 
-		return array_key_exists('logger', $line) && $line['logger'] == $logger;
+		return array_key_exists('logger', $line) && $line['logger'] === $logger;
 	}
 
 	/**
@@ -160,60 +156,65 @@ class LogFile
 	 */
 	private static function logLineHasMinLevel(int $minLevel, array $line): bool
 	{
-		if ($minLevel === 0)
+		if ($minLevel === 0 || !isset($line['level']))
 			return true;
 
-		$ok = array_key_exists('level', $line);
-		$ok = $ok && static::getLevelNumber($line['level']) >= $minLevel;
-
-		return $ok;
-	}
-
-	/**
-	 * Returns the associated number for a log level string.
-	 */
-	public static function getLevelNumber(string $level)
-	{
-		$levels = self::getLevels();
-
-		if (!isset($levels[$level]))
-			throw new InvalidArgumentException('Level "' . $level . '" is not defined, use one of: ' . implode(', ', $levels));
-
-		return $levels[$level];
-	}
-
-	public static function getLevels(): array
-	{
-		return Level::VALUES;
+		return static::getLevelNumber($line['level']) >= $minLevel;
 	}
 
 	/**
 	 * Internal filtering method for determining whether a log line contains a specific string.
-	 *
-	 * @param string $keyword
-	 * @param array  $line
-	 * @param bool   $searchMeta
-	 *
-	 * @return bool
 	 */
-	private static function logLineHasText(string $keyword, array $line, bool $searchMeta = true): bool
+	private static function logLineHasText(?string $keyword, array $line, bool $searchMeta = true): bool
 	{
-		$ok = $keyword === null;
-		$ok = $ok || array_key_exists('message', $line) && str_contains(strtolower($line['message']), strtolower($keyword));
-		$ok = $ok || array_key_exists('date', $line) && str_contains(strtolower($line['date']), strtolower($keyword));
+		if ($keyword === null)
+			return true;
 
-		if ($ok || !$searchMeta)
-			return $ok;
+		if (isset($line['message']) && str_contains(strtolower($line['message']), strtolower($keyword)))
+			return true;
 
-		$context = $line['context'] ?? [];
-		$extra = $line['extra'] ?? [];
-		$meta = array_merge($context, $extra);
+		/*if (isset($line['date']) && strpos(strtolower($line['date']), strtolower($keyword)) !== false)
+			return true;*/
+		// TODO: Format date same as angular
 
-		$ok = array_key_exists(strtolower($keyword), $meta);
-		foreach ($meta as $content)
-			$ok = $ok || str_contains(strtolower($content), strtolower($keyword));
+		if (!$searchMeta || !isset($line['meta']))
+			return false;
 
-		return $ok;
+		$context = $line['meta'];
+		$keyword = strtolower($keyword);
+
+		foreach ($context as $meta) {
+			if (isset($meta[$keyword]))
+				return true;
+
+			if (is_string($meta['content']) && str_contains(strtolower($meta['content']), $keyword))
+				return true;
+		}
+
+		return false;
+	}
+
+	/**
+	 * Reverses the line order. (e.g. newest first instead of oldest first).
+	 */
+	public function reverseLines(): void
+	{
+		$lines = $this->lines->toArray();
+		$lines = array_reverse($lines, false);
+		$this->lines = new ArrayCollection($lines);
+	}
+
+	/**
+	 * Returns the number of lines in the log file.
+	 */
+	public function countLines(?array $filter = null): int
+	{
+		if ($filter === null)
+			return $this->lines->count();
+
+		$lines = $this->getLines(null, 0, $filter);
+
+		return count($lines);
 	}
 
 	public function getName(): string
@@ -231,14 +232,42 @@ class LogFile
 		return $this->loggers;
 	}
 
-	public function hasLogger($logger): bool
+	public function hasLogger(string $logger): bool
 	{
 		return $this->loggers->contains($logger);
 	}
 
-	public function addLogger($logger): void
+	public function addLogger(string $logger): void
 	{
 		$this->loggers->add($logger);
+	}
+
+	public function ensureLogger(string $logger): void
+	{
+		if (!$this->hasLogger($logger))
+			$this->loggers->add($logger);
+	}
+
+	public static function getLevelName($level): ?string
+	{
+		return Level::fromValue($level)->getName();
+	}
+
+	/**
+	 * Returns the associated number for a log level string.
+	 */
+	public static function getLevelNumber(string $level): ?int
+	{
+		try {
+			return Level::fromName($level)->value;
+		} catch (UnhandledMatchError) {
+			return null;
+		}
+	}
+
+	public static function getLevels(): array
+	{
+		return Level::VALUES;
 	}
 
 	public function getCollectionSlug(): string
@@ -249,5 +278,14 @@ class LogFile
 	public function getIdentifier(): string
 	{
 		return "$this->collectionSlug/$this->slug";
+	}
+
+	public function toArray(): array
+	{
+		return [
+			'name' => $this->name,
+			'slug' => $this->slug,
+			'loggers' => $this->loggers,
+		];
 	}
 }

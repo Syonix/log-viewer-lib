@@ -41,20 +41,30 @@ class LogFileAccessor
 
 		$lines = explode("\n", $file);
 		$parser = new LineLogParser;
-		$hasCustomPattern = isset($args['pattern']);
+		$pattern = isset($args['pattern']) ? 'custom' : 'default';
 
-		if ($hasCustomPattern)
+		if ($pattern === 'custom')
 			$parser->registerPattern('custom', $args['pattern']);
 
 		foreach ($lines as $line) {
-			$entry = ($hasCustomPattern ? $parser->parse($line, 0, 'custom') : $parser->parse($line, 0));
+			$entry = $parser->parse($line, 0, $pattern);
 
-			if (count($entry) === 0)
+			if ($entry === [])
 				continue;
 
-			if (!$logFile->hasLogger($entry['logger']))
-				$logFile->addLogger($entry['logger']);
+			$context = $entry['context'] ?? [];
+			$extra = $entry['extra'] ?? [];
 
+			$entry['meta'] = array_merge($context, $extra); // TODO fields configurable?
+			foreach ($entry['meta'] as $key => &$meta)
+				$meta = [
+					'title' => $key,
+					'content' => $meta,
+				];
+
+			$entry['meta'] = array_values($entry['meta']);
+
+			$logFile->ensureLogger($entry['logger']);
 			$logFile->addLine($entry);
 		}
 
@@ -107,7 +117,8 @@ class LogFileAccessor
 					$args['path']));
 				break;
 			case 'local':
-				$args['filesystem'] = new Filesystem(new LocalFilesystemAdapter(dirname($args['path'])));
+				$adapter = new LocalFilesystemAdapter(dirname($args['path']));
+				$args['filesystem'] = new Filesystem($adapter);
 				$args['path'] = basename($args['path']);
 				break;
 			default:

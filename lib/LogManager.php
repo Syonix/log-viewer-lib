@@ -3,64 +3,84 @@
 namespace Syonix\LogViewer;
 
 use Doctrine\Common\Collections\ArrayCollection;
+use League\Flysystem\Local\LocalFilesystemAdapter;
 use Syonix\LogViewer\Exceptions\NoLogsConfiguredException;
 
-/**
- * Represents the entry point for the application.
- */
 class LogManager
 {
-	protected ArrayCollection $logCollections;
-	protected $cacheDir;
+	protected ArrayCollection $collections;
+	protected string $cacheDir;
+	protected int $expire;
+	protected bool $reverse;
+	protected LogFileCache $cache;
 
-	public function __construct($logs)
+	public function __construct(array $logs, string $cacheDir, int $expire = 300, bool $reverse = true)
 	{
 		setlocale(LC_ALL, 'en_US.UTF8');
 
-		$this->logCollections = new ArrayCollection;
+		$this->collections = new ArrayCollection;
+		$this->cacheDir = $cacheDir;
+		$this->expire = $expire;
+		$this->reverse = $reverse;
+
+		$adapter = new LocalFilesystemAdapter($this->cacheDir);
+		$this->cache = new LogFileCache($adapter, $this->expire, $this->reverse);
 
 		if (count($logs) === 0)
 			throw new NoLogsConfiguredException;
 
-		foreach ($logs as $logCollectionName => $logCollectionLogs) {
-			if (count($logCollectionLogs) === 0)
+		foreach ($logs as $collection => $collectionLogs) {
+			if (count($collectionLogs) === 0)
 				continue;
 
-			$logCollection = new LogCollection($logCollectionName);
+			$collection = new LogCollection($collection);
 
-			foreach ($logCollectionLogs as $logName => $args)
-				$logCollection->addLog(new LogFile($logName, $logCollection->getSlug(), $args));
+			foreach ($collectionLogs as $logName => $args)
+				$collection->addLog(new LogFile($logName, $collection->getSlug(), $args));
 
-			$this->logCollections->add($logCollection);
+			$this->collections->add($collection);
 		}
 	}
 
 	public function hasLogs(): bool
 	{
-		return !$this->logCollections->isEmpty();
+		return !$this->collections->isEmpty();
 	}
 
-	public function getLogCollections(): ArrayCollection
+	public function getCollections(): ArrayCollection
 	{
-		return $this->logCollections;
+		return $this->collections;
 	}
 
 	public function getLogCollection(string $slug): ?LogCollection
 	{
-		foreach ($this->logCollections as $logCollection)
-			if ($logCollection->getSlug() === $slug)
-				return $logCollection;
+		foreach ($this->collections as $collection)
+			if ($collection->getSlug() === $slug)
+				return $collection;
 
 		return null;
 	}
 
+	public function clearCache($collection, $log): void
+	{
+		$collection = $this->getLogCollection($collection);
+		$log = $collection->getLog($log);
+
+		$this->cache->clearCache($log);
+	}
+
 	public function getFirstLogCollection(): ?LogCollection
 	{
-		return ($this->logCollections->count() > 0) ? $this->logCollections->first() : null;
+		return ($this->collections->count() > 0) ? $this->collections->first() : null;
 	}
 
 	public function logCollectionExists($logCollection): bool
 	{
-		return $this->logCollections->contains($logCollection);
+		return $this->collections->contains($logCollection);
+	}
+
+	public function loadLog(LogFile $logFile): LogFile
+	{
+		return $this->cache->get($logFile);
 	}
 }
