@@ -10,9 +10,9 @@ use League\Flysystem\Filesystem;
  */
 class LogFileCache
 {
-	private $cache;
-	private $accessor;
-	private $expire;
+	private Filesystem $cache;
+	private LogFileAccessor $accessor;
+	private int $expire;
 
 	public function __construct(FilesystemAdapter $adapter, $expire = 300, $reverse = true)
 	{
@@ -26,15 +26,16 @@ class LogFileCache
 		return LogFileAccessor::isAccessible($logFile);
 	}
 
-	public function emptyCache(): void
+	public function clearCache(): void
 	{
 		$cache = $this->cache->listContents('/');
+
 		foreach ($cache as $file)
 			if ($file['type'] == 'file' && substr($file['basename'], 0, 1) !== '.')
 				$this->cache->delete($file['path']);
 	}
 
-	public function get(LogFile $logFile)
+	public function get(LogFile $logFile): LogFile
 	{
 		if ($this->cache->fileExists($this->getFilename($logFile))) {
 			$timestamp = $this->cache->lastModified($this->getFilename($logFile));
@@ -48,17 +49,17 @@ class LogFileCache
 		return $this->loadSource($logFile);
 	}
 
-	private function readCache(LogFile $logFile)
+	private function readCache(LogFile $logFile): LogFile
 	{
 		return unserialize($this->cache->read($this->getFilename($logFile)));
 	}
 
-	private function deleteCache(LogFile $logFile)
+	private function deleteCache(LogFile $logFile): void
 	{
 		$this->cache->delete($this->getFilename($logFile));
 	}
 
-	private function loadSource(LogFile $logFile)
+	private function loadSource(LogFile $logFile): LogFile
 	{
 		$logFile = $this->accessor->get($logFile);
 		$this->writeCache($logFile);
@@ -66,12 +67,12 @@ class LogFileCache
 		return $logFile;
 	}
 
-	private function writeCache(LogFile $logFile)
+	private function writeCache(LogFile $logFile): void
 	{
 		$this->cache->write($this->getFilename($logFile), serialize($logFile));
 	}
 
-	private function getFilename(LogFile $logFile)
+	private function getFilename(LogFile $logFile): string
 	{
 		return base64_encode($logFile->getIdentifier());
 	}

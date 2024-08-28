@@ -36,29 +36,32 @@ class LintCommand extends Command
 			);
 	}
 
-	protected function execute(InputInterface $input, OutputInterface $output)
+	protected function execute(InputInterface $input, OutputInterface $output): int
 	{
 		$path = ($input->getArgument('config_file') ? $input->getArgument('config_file') : $this->configDefaultPath);
 		$output->writeln('Linting <info>' . basename($path) . '</info>...');
-		if (!is_file($path)) {
+
+		if (!is_file($path))
 			throw new InvalidArgumentException('"' . $path . '" is not a file.');
-		} else if (!is_readable($path)) {
+		else if (!is_readable($path))
 			throw new InvalidArgumentException('"' . $path . '" can not be read.');
-		}
 
 		$verifyLogFiles = $input->getOption('check-files');
 
-		if ($verifyLogFiles) {
+		if ($verifyLogFiles)
 			$output->writeln('<comment>Also checking if the log files can be accessed.</comment>');
-		}
-		$output->writeln('');
 
-		$lint = Config::lint(file_get_contents($path), $verifyLogFiles);
+		$output->writeln('');
+		$file = file_get_contents($path);
+
+		if ($file === false)
+			throw new InvalidArgumentException('Failed to read "' . $path . '"');
+
+		$lint = Config::lint($file, $verifyLogFiles);
 
 		$checkLines = [];
-		foreach ($lint['checks'] as $check) {
+		foreach ($lint['checks'] as $check)
 			$checkLines = $this->prepareCheckLine($checkLines, $check);
-		}
 
 		$output->writeln('Checks:');
 		$table = new Table($output);
@@ -72,6 +75,8 @@ class LintCommand extends Command
 		} else {
 			$output->writeln('<error> Your config file is not valid. </error>');
 		}
+
+		return $lint['valid'] ? 0 : 1;
 	}
 
 	private function prepareCheckLine($checkLines, $check, $level = 0)

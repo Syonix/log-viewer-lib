@@ -10,9 +10,9 @@ use URLify;
  */
 class LogCollection
 {
-	protected $name;
-	protected $slug;
-	protected $logs;
+	protected ?string $name = null;
+	protected ?string $slug = null;
+	protected ArrayCollection $logs;
 
 	public function __construct($name = null)
 	{
@@ -22,18 +22,18 @@ class LogCollection
 			$this->setName($name);
 	}
 
-	public function getName()
+	public function getName(): ?string
 	{
 		return $this->name;
 	}
 
-	public function setName($name)
+	public function setName(?string $name): void
 	{
 		$this->name = $name;
 		$this->slug = URLify::filter($name);
 	}
 
-	public function addLog(LogFile $log)
+	public function addLog(LogFile $log): self
 	{
 		if (!$this->logs->contains($log))
 			$this->logs->add($log);
@@ -41,7 +41,7 @@ class LogCollection
 		return $this;
 	}
 
-	public function removeLog(LogFile $log)
+	public function removeLog(LogFile $log): self
 	{
 		if ($this->logs->contains($log))
 			$this->logs->remove($log);
@@ -49,39 +49,31 @@ class LogCollection
 		return $this;
 	}
 
-	public function getLogs()
+	public function getLogs(): ArrayCollection
 	{
 		return $this->logs;
 	}
 
-	/**
-	 * @param $slug
-	 *
-	 * @return LogFile|null
-	 */
-	public function getLog($slug)
+	public function getLog(string $slug): ?LogFile
 	{
 		foreach ($this->logs as $log)
-			if ($log->getSlug() == $slug)
+			if ($log->getSlug() === $slug)
 				return $log;
 
 		return null;
 	}
 
-	public function getSlug()
+	public function getSlug(): string
 	{
 		return $this->slug;
 	}
 
-	/**
-	 * @return LogFile|null
-	 */
-	public function getFirstLog()
+	public function getFirstLog(): ?LogFile
 	{
 		return ($this->logs->count() > 0) ? $this->logs->first() : null;
 	}
 
-	public function logExists($log)
+	public function logExists(string $log): bool
 	{
 		$ok = false;
 		foreach ($this->logs as $existing_log)
@@ -90,7 +82,7 @@ class LogCollection
 		return $ok;
 	}
 
-	public function toArray()
+	public function toArray(): array
 	{
 		$logs = [];
 		foreach ($this->logs as $log)

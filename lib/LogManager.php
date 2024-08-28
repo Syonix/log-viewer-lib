@@ -35,37 +35,31 @@ class LogManager
 		}
 	}
 
-	public function hasLogs()
+	public function hasLogs(): bool
 	{
 		return !$this->logCollections->isEmpty();
 	}
 
-	public function getLogCollections()
+	public function getLogCollections(): ArrayCollection
 	{
 		return $this->logCollections;
 	}
 
-	/**
-	 * @param $slug
-	 *
-	 * @return LogCollection|null
-	 */
-	public function getLogCollection($slug)
+	public function getLogCollection(string $slug): ?LogCollection
 	{
 		foreach ($this->logCollections as $logCollection)
-			if ($logCollection->getSlug() == $slug)
+			if ($logCollection->getSlug() === $slug)
 				return $logCollection;
+
+		return null;
 	}
 
-	/**
-	 * @return LogCollection|null
-	 */
-	public function getFirstLogCollection()
+	public function getFirstLogCollection(): ?LogCollection
 	{
 		return ($this->logCollections->count() > 0) ? $this->logCollections->first() : null;
 	}
 
-	public function logCollectionExists($logCollection)
+	public function logCollectionExists($logCollection): bool
 	{
 		return $this->logCollections->contains($logCollection);
 	}

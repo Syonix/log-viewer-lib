@@ -118,6 +118,7 @@ class LogFile
 	 */
 	public function getLines(?int $limit = null, int $offset = 0, ?array $filter = null): array
 	{
+		// TODO: Improve performance
 		$lines = clone $this->lines;
 
 		if ($filter !== null) {
