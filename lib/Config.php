@@ -23,9 +23,9 @@ class Config
 		$this->config = is_array($config) ? $config : $this->parse($config);
 	}
 
-	protected static function parse(string $input): ?array
+	public static function parse(string $input): ?array
 	{
-		return Yaml::parse($input, true);
+		return Yaml::parse($input, Yaml::PARSE_EXCEPTION_ON_INVALID_TYPE);
 	}
 
 	public function validate(): array
