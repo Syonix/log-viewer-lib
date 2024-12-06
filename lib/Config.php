@@ -13,8 +13,8 @@ use URLify;
  */
 class Config
 {
-	protected ?array $config;
-	protected $configTree;
+	protected array $config;
+	protected array $configTree;
 
 	/**
 	 * @param array|string $config Either an array or the file contents of the config file (yaml).
@@ -45,14 +45,14 @@ class Config
 	}
 
 	/**
-	 * Lints a config file for syntactical and semantical correctness.
+	 * Lints a config file for syntactical and semantic correctness.
 	 *
-	 * @param string $config         The configuration string to parse and lint
-	 * @param bool   $verifyLogFiles Also verfy whether the log files are accessible
+	 * @param mixed[]|string $config         The configuration string to parse and lint
+	 * @param bool           $verifyLogFiles Also verify whether the log files are accessible
 	 *
-	 * @return array
+	 * @return mixed[]
 	 */
-	public static function lint(string $config, bool $verifyLogFiles = false): array
+	public static function lint(array|string $config, bool $verifyLogFiles = false): array
 	{
 		$valid = true;
 		$checks = [];
@@ -63,7 +63,7 @@ class Config
 		];
 
 		try {
-			$config = self::parse($config);
+			$config = is_string($config) ? self::parse($config) : $config;
 			$checks['valid_yaml']['status'] = 'ok';
 		} catch (Exception $e) {
 			$valid = false;
@@ -122,6 +122,7 @@ class Config
 
 		try {
 			$unknown = [];
+
 			if (!array_key_exists('logs', $config))
 				throw new Exception('Config property "logs" is missing.');
 
@@ -129,8 +130,10 @@ class Config
 				if ($property === 'logs') {
 					$emptyCollections = [];
 					foreach ($value as $logCollectionKey => $logCollection) {
-						if (empty($logCollection))
+						if (empty($logCollection)) {
+							$emptyCollections[] = $logCollectionKey;
 							continue;
+						}
 
 						foreach ($logCollection as $logFileKey => $logFile) {
 							if (array_key_exists('type', $logFile))
@@ -150,7 +153,7 @@ class Config
 			}
 
 			if (!isset($return['status'])) {
-				if (!empty($unknown)) {
+				if ($unknown !== []) {
 					$return['status'] = 'warn';
 					$return['error'] = 'Unknown config properties: ' . implode(', ', $unknown);
 				} else {
@@ -218,11 +221,11 @@ class Config
 				switch (self::getValidSettings($property)['type']) {
 					case 'bool':
 						if (!is_bool($value))
-							throw new Exception('"' . $property . '" must be a boolean value.');
+							throw new Exception(sprintf('"%s" must be a boolean value.', $property));
 						break;
 					case 'int':
 						if (!is_int($value))
-							throw new Exception('"' . $property . '" must be an integer value.');
+							throw new Exception(sprintf('"%s" must be an integer value.', $property));
 						break;
 				}
 			}
@@ -236,22 +239,23 @@ class Config
 		return $return;
 	}
 
-	protected static function lintLogCollection(string $name, $logCollection): array
+	protected static function lintLogCollection(string $name, array $logCollection, bool $verifyLogFiles = false): array
 	{
 		$return = [
 			'message' => 'Checking "' . $name . '"',
 		];
+
 		try {
-			if (empty($logCollection)) {
+			$return['status'] = 'ok';
+			if ($logCollection === []) {
 				$return['status'] = 'warn';
 				$return['error'] = '"' . $name . '" has no log files.';
-			} else {
-				foreach ($logCollection as $logFileName => $logFile) {
-					$return['sub_checks'][$logFileName] = self::lintLogFile($logFileName, $logFile);
-					if ($return['sub_checks'][$logFileName]['status'] === 'fail')
-						throw new Exception;
-				}
-				$return['status'] = 'ok';
+			}
+
+			foreach ($logCollection as $logFileName => $logFile) {
+				$return['sub_checks'][$logFileName] = self::lintLogFile($logFileName, $logFile, $verifyLogFiles);
+				if ($return['sub_checks'][$logFileName]['status'] === 'fail')
+					throw new Exception;
 			}
 		} catch (Exception $e) {
 			$return['status'] = 'fail';
@@ -261,7 +265,7 @@ class Config
 		return $return;
 	}
 
-	protected static function lintLogFile(string $name, array $logFile, bool $verifyLogFiles = false)
+	protected static function lintLogFile(string $name, array $logFile, bool $verifyLogFiles = false): array
 	{
 		$return = [
 			'message' => 'Checking "' . $name . '"',
@@ -271,7 +275,7 @@ class Config
 				throw new Exception('"' . $logFile['type'] . '" is not a supported type.');
 
 			if ($verifyLogFiles) {
-				$return['checks'][$name] = self::lintCheckFileAccessible(new LogFile($name, null, $logFile));
+				$return['checks'][$name] = self::lintCheckFileAccessible(new LogFile($name, '', $logFile));
 				if ($return['checks'][$name]['status'] === 'fail')
 					throw new Exception;
 			}
@@ -365,14 +369,5 @@ class Config
 		}
 
 		return $node;
-	}
-
-	protected function getValidConfigTree()
-	{
-		return $this->configTree;
-	}
-
-	protected function getMandatoryConfigTree()
-	{
 	}
 }

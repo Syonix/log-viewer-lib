@@ -14,7 +14,7 @@ class LogCollection
 	protected ?string $slug = null;
 	protected ArrayCollection $logs;
 
-	public function __construct($name = null)
+	public function __construct(?string $name = null)
 	{
 		$this->logs = new ArrayCollection;
 
@@ -44,7 +44,7 @@ class LogCollection
 	public function removeLog(LogFile $log): self
 	{
 		if ($this->logs->contains($log))
-			$this->logs->remove($log);
+			$this->logs->remove($this->logs->indexOf($log));
 
 		return $this;
 	}

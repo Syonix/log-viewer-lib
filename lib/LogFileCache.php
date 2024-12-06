@@ -15,7 +15,7 @@ class LogFileCache
 	private LogFileAccessor $accessor;
 	private int $expire;
 
-	public function __construct(FilesystemAdapter $adapter, $expire = 300, $reverse = true)
+	public function __construct(FilesystemAdapter $adapter, int $expire = 300, bool $reverse = true)
 	{
 		$this->cache = new Filesystem($adapter);
 		$this->accessor = new LogFileAccessor($reverse);
@@ -27,9 +27,11 @@ class LogFileCache
 		return LogFileAccessor::isAccessible($logFile);
 	}
 
-	public function clearCache(): void
+	public function clearCache(?LogFile $logFile): void
 	{
 		$cache = $this->cache->listContents('/');
+
+		// TODO respect logFile
 
 		foreach ($cache as $file)
 			if ($file->type() === StorageAttributes::TYPE_FILE && !str_starts_with(basename($file->path()), '.'))

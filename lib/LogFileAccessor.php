@@ -16,11 +16,8 @@ use League\Flysystem\PhpseclibV3\SftpConnectionProvider;
  */
 class LogFileAccessor
 {
-	private bool $reverse;
-
-	public function __construct($reverse = true)
+	public function __construct(private readonly bool $reverse = true)
 	{
-		$this->reverse = $reverse;
 	}
 
 	public static function isAccessible(LogFile $logFile): bool
@@ -74,7 +71,7 @@ class LogFileAccessor
 		return $logFile;
 	}
 
-	private static function getFilesystem($args)
+	private static function getFilesystem(array $args): array
 	{
 		switch ($args['type']) {
 			case 'ftp':

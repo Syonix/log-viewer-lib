@@ -14,9 +14,9 @@ use Syonix\LogViewer\Config;
 
 class LintCommand extends Command
 {
-	private $configDefaultPath;
+	private ?string $configDefaultPath;
 
-	protected function configure($configDefaultPath = null)
+	protected function configure(?string $configDefaultPath = null)
 	{
 		$this->configDefaultPath = $configDefaultPath;
 
@@ -79,23 +79,17 @@ class LintCommand extends Command
 		return $lint['valid'] ? 0 : 1;
 	}
 
-	private function prepareCheckLine($checkLines, $check, $level = 0)
+	private function prepareCheckLine(array $checkLines, array $check, int $level = 0): array
 	{
 		$indentation = str_repeat('   ', $level);
 
 		$message = preg_replace('/"(.+)"/', '<fg=blue>${1}</>', $check['message']);
-		$line[] = $indentation . '➜ ' . $message;
-		switch ($check['status']) {
-			case 'ok':
-				$line[] .= '  [ <fg=green>ok</> ]';
-				break;
-			case 'warn':
-				$line[] .= '  [<fg=yellow>warn</>]';
-				break;
-			default:
-				$line[] .= '  [<fg=red>fail</>]';
-				break;
-		}
+		$line= $indentation . '➜ ' . $message;
+		$line .= match ($check['status']) {
+			'ok' => '  [ <fg=green>ok</> ]',
+			'warn' => '  [<fg=yellow>warn</>]',
+			default => '  [<fg=red>fail</>]',
+		};
 		$checkLines[] = $line;
 
 		if (isset($check['error']) && $check['error'] != '') {

@@ -53,9 +53,9 @@ class LogFile
 	/**
 	 * Returns a log line from the file or null if the index does not exist.
 	 */
-	public function getLine($line): ?array
+	public function getLine(int $line): ?array
 	{
-		return $this->lines[(int)$line] ?? null;
+		return $this->lines[$line] ?? null;
 	}
 
 	/**
@@ -89,7 +89,7 @@ class LogFile
 		return array_values($result->toArray());
 	}
 
-	private function filter(ArrayCollection $lines, $filter): ArrayCollection
+	private function filter(ArrayCollection $lines, array $filter): ArrayCollection
 	{
 		$time = $filter['time'] ?? null;
 		$logger = $filter['logger'] ?? null;
@@ -99,11 +99,10 @@ class LogFile
 		$result = $lines;
 
 		foreach ($result as $line) {
-			$ok = true;
-			$ok = $ok && static::logLineHasTime($time, $line);
-			$ok = $ok && static::logLineHasLogger($logger, $line);
-			$ok = $ok && static::logLineHasMinLevel($minLevel, $line);
-			$ok = $ok && static::logLineHasText($text, $line, $searchMeta);
+			$ok = self::logLineHasTime($time, $line);
+			$ok = $ok && self::logLineHasLogger($logger, $line);
+			$ok = $ok && self::logLineHasMinLevel($minLevel, $line);
+			$ok = $ok && self::logLineHasText($text, $line, $searchMeta);
 
 			if (!$ok)
 				$result->removeElement($line);
@@ -115,7 +114,7 @@ class LogFile
 	/**
 	 * Internal filtering method for determining whether a log line matches a specific time.
 	 */
-	private static function logLineHasTime(?string $time, $line): bool
+	private static function logLineHasTime(?string $time, array $line): bool
 	{
 		if ($time === null)
 			return true;
@@ -248,8 +247,11 @@ class LogFile
 			$this->loggers->add($logger);
 	}
 
-	public static function getLevelName($level): ?string
+	public static function getLevelName(int $level): ?string
 	{
+		if (!in_array($level, [100, 200, 250, 300, 400, 500, 550, 600]))
+			return null;
+
 		return Level::fromValue($level)->getName();
 	}
 

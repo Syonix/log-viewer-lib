@@ -13,7 +13,7 @@ class LogApiHelper
 		$this->manager = $manager;
 	}
 
-	public function getLogs($urlPrefix = ''): array
+	public function getLogs(string $urlPrefix = ''): array
 	{
 		$result = [];
 		foreach ($this->manager->getCollections() as $collection) {
@@ -34,7 +34,7 @@ class LogApiHelper
 		return $result;
 	}
 
-	public function getLog($collection, $log, $limit, $offset = 0, array $filter = [], $urlPrefix = ''): array
+	public function getLog(string $collection, string $log, int $limit, int $offset = 0, array $filter = [], string $urlPrefix = ''): array
 	{
 		$collection = $this->manager->getLogCollection($collection);
 		$log = $this->manager->loadLog($collection->getLog($log));

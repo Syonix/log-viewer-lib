@@ -61,10 +61,13 @@ class LogManager
 		return null;
 	}
 
-	public function clearCache($collection, $log): void
+	public function clearCache(string $collection, string $log): void
 	{
 		$collection = $this->getLogCollection($collection);
 		$log = $collection->getLog($log);
+
+		if ($log === null)
+			return;
 
 		$this->cache->clearCache($log);
 	}
@@ -74,7 +77,7 @@ class LogManager
 		return ($this->collections->count() > 0) ? $this->collections->first() : null;
 	}
 
-	public function logCollectionExists($logCollection): bool
+	public function logCollectionExists(LogCollection $logCollection): bool
 	{
 		return $this->collections->contains($logCollection);
 	}
