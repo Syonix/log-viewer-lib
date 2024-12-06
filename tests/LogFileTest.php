@@ -19,6 +19,7 @@ final class LogFileTest extends TestCase
 		$log = new LogFile('logfile', 'logfile', []);
 		$log->addLine($line);
 
-		$this->assertTrue(true); // TODO
+		// @phpstan-ignore method.alreadyNarrowedType
+		$this->assertTrue(true); // TODO write tests
 	}
 }
