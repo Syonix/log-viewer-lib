@@ -111,7 +111,8 @@ class LogFileAccessor
 						$args['max_tries'] ?? 4,
 						$args['host_fingerprint'] ?? null,
 					),
-					$args['path']));
+					$args['path']
+				));
 				break;
 			case 'local':
 				$adapter = new LocalFilesystemAdapter(dirname($args['path']));

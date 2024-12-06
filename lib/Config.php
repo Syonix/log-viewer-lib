@@ -147,7 +147,7 @@ class Config
 						$return['status'] = 'warn';
 						$return['error'] = 'The following log collections have no logs: ' . implode(', ', $emptyCollections);
 					}
-				} else if (!array_key_exists($property, self::getValidSettings())) {
+				} elseif (!array_key_exists($property, self::getValidSettings())) {
 					$unknown[] = $property;
 				}
 			}

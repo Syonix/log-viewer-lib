@@ -42,9 +42,10 @@ class LintCommand extends Command
 		$output->writeln('Linting <info>' . basename($path) . '</info>...');
 
 		if (!is_file($path))
-			throw new InvalidArgumentException('"' . $path . '" is not a file.');
-		else if (!is_readable($path))
-			throw new InvalidArgumentException('"' . $path . '" can not be read.');
+			throw new InvalidArgumentException(sprintf('"%s" is not a file.', $path));
+
+		if (!is_readable($path))
+			throw new InvalidArgumentException(sprintf('"%s" can not be read.', $path));
 
 		$verifyLogFiles = $input->getOption('check-files');
 
@@ -84,7 +85,7 @@ class LintCommand extends Command
 		$indentation = str_repeat('   ', $level);
 
 		$message = preg_replace('/"(.+)"/', '<fg=blue>${1}</>', $check['message']);
-		$line= $indentation . '➜ ' . $message;
+		$line = $indentation . '➜ ' . $message;
 		$line .= match ($check['status']) {
 			'ok' => '  [ <fg=green>ok</> ]',
 			'warn' => '  [<fg=yellow>warn</>]',
